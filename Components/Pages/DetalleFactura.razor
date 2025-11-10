@@ -1,0 +1,76 @@
+﻿@page "/detalle-factura/{FacturaId:int}"
+@rendermode InteractiveServer
+@using blazor.Components.Data
+@using blazor.Components.Servicios
+@inject blazor.Components.Servicios.ServicioControlador ServicioControlador
+@inject NavigationManager Navigation
+
+<button class="btn btn-secondary mb-3" @onclick="VolverALista">
+    &larr; Volver a Facturas
+</button>
+
+@if (FacturaDetalle == null)
+{
+    <h3>Factura no encontrada</h3>
+    <div class="alert alert-danger">
+        No se pudo cargar la factura con ID: **@FacturaId**.
+    </div>
+}
+else
+{
+    <h3>Detalle de Factura #@FacturaDetalle.Id 📑</h3>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Cliente: **@FacturaDetalle.NombreCliente**</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Fecha:</strong> @FacturaDetalle.FechaFactura.ToShortDateString()</p>
+            <hr />
+
+            <h5>Artículos Incluidos:</h5>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th class="text-end">Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in FacturaDetalle.Articulos)
+                    {
+                        <tr>
+                            <td>@item.Descripcion</td>
+                            <td class="text-end">$@item.Precio.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-dark">
+                        <th>TOTAL DE FACTURA</th>
+                        <th class="text-end">$@FacturaDetalle.Total.ToString("N2")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int FacturaId { get; set; }
+
+    private Factura? FacturaDetalle { get; set; }
+
+    // Se ejecuta al inicializar el componente y después de que se asignen los parámetros
+    protected override void OnInitialized()
+    {
+        // Obtener la factura del cache del controlador
+        FacturaDetalle = ServicioControlador.ObtenerFacturaPorId(FacturaId);
+    }
+
+    private void VolverALista()
+    {
+        Navigation.NavigateTo("/Vista");
+    }
+}

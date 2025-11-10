@@ -1,0 +1,120 @@
+﻿@page "/nueva-factura"
+@rendermode InteractiveServer
+@using blazor.Components.Data
+@using blazor.Components.Servicios
+@inject blazor.Components.Servicios.ServicioControlador ServicioControlador
+@inject NavigationManager Navigation
+
+<h3>Crear Nueva Factura</h3>
+<hr />
+
+<div class="card shadow-lg p-4">
+    <EditForm Model="@FacturaNueva" OnValidSubmit="GuardarFactura">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label for="nombreCliente" class="form-label">Nombre del Cliente</label>
+            <InputText id="nombreCliente" @bind-Value="FacturaNueva.NombreCliente" class="form-control" />
+            <ValidationMessage For="@(() => FacturaNueva.NombreCliente)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="fechaFactura" class="form-label">Fecha de la Factura</label>
+            <InputDate id="fechaFactura" @bind-Value="FacturaNueva.FechaFactura" class="form-control" />
+            <ValidationMessage For="@(() => FacturaNueva.FechaFactura)" />
+        </div>
+
+        <h4 class="mt-4">Artículos</h4>
+        <hr />
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th style="width: 150px;" class="text-end">Precio</th>
+                    <th style="width: 50px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var articulo in FacturaNueva.Articulos)
+                {
+                    <tr>
+                        <td>
+                            <input @bind="articulo.Descripcion" class="form-control" />
+                        </td>
+                        <td>
+                            <input @bind="articulo.Precio" type="number" step="0.01" class="form-control text-end" />
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoverArticulo(articulo)">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3">
+                        <button type="button" class="btn btn-success" @onclick="AgregarArticulo">
+                            ➕ Agregar Artículo
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="text-end">Total Estimado:</th>
+                    <th class="text-end" colspan="2">$@FacturaNueva.Total.ToString("N2")</th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" @onclick="Volver">
+                Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+                💾 Guardar Factura
+            </button>
+        </div>
+
+    </EditForm>
+</div>
+
+@code {
+    // Inicializar la factura con la fecha actual y un artículo vacío
+    public Factura FacturaNueva { get; set; } = new Factura
+    {
+        FechaFactura = DateTime.Now,
+        Articulos = new List<Factura.ArticuloFactura>
+        {
+            new Factura.ArticuloFactura()
+        }
+    };
+
+    private void AgregarArticulo()
+    {
+        FacturaNueva.Articulos.Add(new Factura.ArticuloFactura());
+    }
+
+    private void RemoverArticulo(Factura.ArticuloFactura articulo)
+    {
+        FacturaNueva.Articulos.Remove(articulo);
+        StateHasChanged(); // Forzar re-renderizado para actualizar el total y la tabla
+    }
+
+    private async Task GuardarFactura()
+    {
+        await ServicioControlador.GuardarNuevaFacturaAsync(FacturaNueva);
+
+        // Recargar las facturas en el controlador (para la vista de lista)
+        await ServicioControlador.CargarFacturasAsync();
+
+        // Navegar a la vista principal
+        Navigation.NavigateTo("/Vista");
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/Vista");
+    }
+}

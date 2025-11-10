@@ -1,0 +1,148 @@
+﻿using blazor.Components.Data;
+using Microsoft.Data.Sqlite;
+
+namespace blazor.Components.Servicios
+{
+    public class ServicioFacturas
+    {
+        private readonly string _connectionString;
+
+        public ServicioFacturas(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        private SqliteConnection GetConnection() => new SqliteConnection(_connectionString);
+        public async Task<IEnumerable<Factura>> ObtenerTodasAsync()
+        {
+            List<Factura> facturas = new();
+
+            using var conexion = GetConnection();
+            await conexion.OpenAsync();
+
+            var comando = conexion.CreateCommand();
+            comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas ORDER BY Id DESC";
+
+            using var reader = await comando.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var factura = new Factura
+                {
+                    Id = reader.GetInt32(0),
+                    FechaFactura = DateTime.Parse(reader.GetString(1)),
+                    NombreCliente = reader.GetString(2),
+                    Articulos = new List<Factura.ArticuloFactura>()
+                };
+
+                factura.Articulos.AddRange(
+                    await ObtenerArticulosPorFacturaIdAsync(factura.Id, conexion)
+                );
+
+                facturas.Add(factura);
+            }
+
+            return facturas;
+        }
+        public async Task<Factura?> ObtenerPorIdAsync(int id)
+        {
+            Factura? factura = null;
+
+            using var conexion = GetConnection();
+            await conexion.OpenAsync();
+
+            var comando = conexion.CreateCommand();
+            comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas WHERE Id = @id";
+            comando.Parameters.AddWithValue("@id", id);
+
+            using (var reader = await comando.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    factura = new Factura
+                    {
+                        Id = reader.GetInt32(0),
+                        FechaFactura = DateTime.Parse(reader.GetString(1)),
+                        NombreCliente = reader.GetString(2),
+                        Articulos = new List<Factura.ArticuloFactura>()
+                    };
+                }
+            }
+
+            if (factura != null)
+            {
+                factura.Articulos.AddRange(
+                    await ObtenerArticulosPorFacturaIdAsync(id, conexion)
+                );
+            }
+
+            return factura;
+        }
+        private async Task<IEnumerable<Factura.ArticuloFactura>> ObtenerArticulosPorFacturaIdAsync(int facturaId, SqliteConnection conexion)
+        {
+            List<Factura.ArticuloFactura> articulos = new();
+
+            var comando = conexion.CreateCommand();
+            comando.CommandText = "SELECT Id, Descripcion, Precio FROM ArticulosFactura WHERE FacturaId = @facturaId";
+            comando.Parameters.Clear();
+            comando.Parameters.AddWithValue("@facturaId", facturaId);
+
+            using var reader = await comando.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                articulos.Add(new Factura.ArticuloFactura
+                {
+                    Id = reader.GetInt32(0),
+                    Descripcion = reader.GetString(1),
+                    Precio = reader.GetDecimal(2)
+                });
+            }
+
+            return articulos;
+        }
+        public async Task AgregarFacturaAsync(Factura nuevaFactura)
+        {
+            using var conexion = GetConnection();
+            conexion.Open();
+
+            using SqliteTransaction transaccion = conexion.BeginTransaction();
+            try
+            {
+                var comandoFactura = conexion.CreateCommand();
+                comandoFactura.Transaction = transaccion;
+                comandoFactura.CommandText = @"
+                    INSERT INTO Facturas (FechaFactura, NombreCliente) 
+                    VALUES (@fecha, @cliente);
+                    SELECT last_insert_rowid();";
+
+                comandoFactura.Parameters.AddWithValue("@fecha", nuevaFactura.FechaFactura.ToString("yyyy-MM-dd HH:mm:ss"));
+                comandoFactura.Parameters.AddWithValue("@cliente", nuevaFactura.NombreCliente);
+
+                long facturaId = (long)(await comandoFactura.ExecuteScalarAsync())!;
+                nuevaFactura.Id = (int)facturaId;
+                if (nuevaFactura.Articulos.Any())
+                {
+                    foreach (var articulo in nuevaFactura.Articulos)
+                    {
+                        var comandoArticulo = conexion.CreateCommand();
+                        comandoArticulo.Transaction = transaccion;
+                        comandoArticulo.CommandText = @"
+                            INSERT INTO ArticulosFactura (FacturaId, Descripcion, Precio)
+                            VALUES (@facturaId, @desc, @precio)";
+
+                        comandoArticulo.Parameters.AddWithValue("@facturaId", facturaId);
+                        comandoArticulo.Parameters.AddWithValue("@desc", articulo.Descripcion);
+                        comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
+                        await comandoArticulo.ExecuteNonQueryAsync();
+                    }
+                }
+
+                await transaccion.CommitAsync();
+            }
+            catch
+            {
+                await transaccion.RollbackAsync();
+                throw;
+            }
+        }
+    }
+}
