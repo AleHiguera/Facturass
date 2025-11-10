@@ -62,11 +62,11 @@ else
 
     private Factura? FacturaDetalle { get; set; }
 
-    // Se ejecuta al inicializar el componente y después de que se asignen los parámetros
-    protected override void OnInitialized()
+    // El cambio clave: Usar OnInitializedAsync para llamar a la función asíncrona.
+    protected override async Task OnInitializedAsync()
     {
-        // Obtener la factura del cache del controlador
-        FacturaDetalle = ServicioControlador.ObtenerFacturaPorId(FacturaId);
+        // Llamada al método asíncrono y actualizado del ServicioControlador
+        FacturaDetalle = await ServicioControlador.ObtenerFacturaPorIdAsync(FacturaId);
     }
 
     private void VolverALista()

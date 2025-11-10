@@ -1,4 +1,6 @@
 ﻿using blazor.Components.Data;
+using System.Linq; 
+
 namespace blazor.Components.Servicios
 {
     public class ServicioControlador
@@ -12,10 +14,12 @@ namespace blazor.Components.Servicios
         {
             _servicioFacturas = servicioFacturas;
         }
+
         public async Task CargarFacturasAsync()
         {
             _facturasEnMemoria = (await _servicioFacturas.ObtenerTodasAsync()).ToList();
         }
+
         public IEnumerable<Factura> ObtenerFacturasFiltradas()
         {
             IEnumerable<Factura> resultado = _facturasEnMemoria;
@@ -28,13 +32,27 @@ namespace blazor.Components.Servicios
 
             return resultado.OrderByDescending(f => f.FechaFactura);
         }
+
         public async Task GuardarNuevaFacturaAsync(Factura nuevaFactura)
         {
             await _servicioFacturas.AgregarFacturaAsync(nuevaFactura);
         }
-        public Factura? ObtenerFacturaPorId(int id)
+        public async Task<Factura?> ObtenerFacturaPorIdAsync(int id)
         {
-            return _facturasEnMemoria.FirstOrDefault(f => f.Id == id);
+            var facturaEnMemoria = _facturasEnMemoria.FirstOrDefault(f => f.Id == id);
+            if (facturaEnMemoria != null)
+            {
+                return facturaEnMemoria;
+            }
+
+            var facturaDesdeDB = await _servicioFacturas.ObtenerPorIdAsync(id);
+
+            if (facturaDesdeDB != null)
+            {
+                _facturasEnMemoria.Add(facturaDesdeDB);
+            }
+
+            return facturaDesdeDB;
         }
     }
 }

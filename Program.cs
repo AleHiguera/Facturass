@@ -2,7 +2,7 @@ using blazor.Components;
 using blazor.Components.Data;
 using blazor.Components.Servicios;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration; // Asegúrate de que este using esté presente
+using Microsoft.Extensions.Configuration; 
 
 var builder = WebApplication.CreateBuilder(args);
 

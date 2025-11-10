@@ -13,6 +13,7 @@ namespace blazor.Components.Servicios
         }
 
         private SqliteConnection GetConnection() => new SqliteConnection(_connectionString);
+
         public async Task<IEnumerable<Factura>> ObtenerTodasAsync()
         {
             List<Factura> facturas = new();
@@ -43,6 +44,10 @@ namespace blazor.Components.Servicios
 
             return facturas;
         }
+
+        // =========================================================
+        // MÉTODO AGREGADO Y COMPLETADO: Obtiene una factura por ID de la DB
+        // =========================================================
         public async Task<Factura?> ObtenerPorIdAsync(int id)
         {
             Factura? factura = null;
@@ -68,6 +73,7 @@ namespace blazor.Components.Servicios
                 }
             }
 
+            // Si se encontró la factura principal, cargamos sus artículos.
             if (factura != null)
             {
                 factura.Articulos.AddRange(
@@ -77,6 +83,8 @@ namespace blazor.Components.Servicios
 
             return factura;
         }
+        // =========================================================
+
         private async Task<IEnumerable<Factura.ArticuloFactura>> ObtenerArticulosPorFacturaIdAsync(int facturaId, SqliteConnection conexion)
         {
             List<Factura.ArticuloFactura> articulos = new();
@@ -99,6 +107,7 @@ namespace blazor.Components.Servicios
 
             return articulos;
         }
+
         public async Task AgregarFacturaAsync(Factura nuevaFactura)
         {
             using var conexion = GetConnection();
