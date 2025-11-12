@@ -12,8 +12,7 @@ namespace blazor.Components.Data
         [Required(ErrorMessage = "El nombre del cliente es obligatorio.")]
         public string NombreCliente { get; set; } = string.Empty;
         public List<ArticuloFactura> Articulos { get; set; } = new List<ArticuloFactura>();
-        public decimal Total => Articulos.Sum(a => a.Precio);
-
+        public decimal Total => Articulos.Sum(a => a.Precio * a.Cantidad);
         public class ArticuloFactura
         {
             public int Id { get; set; }
@@ -21,9 +20,12 @@ namespace blazor.Components.Data
 
             [Required(ErrorMessage = "La descripción es obligatoria.")]
             public string Descripcion { get; set; } = string.Empty;
+            [Range(1, double.MaxValue, ErrorMessage = "La cantidad debe ser mayor a cero.")]
+            public int Cantidad { get; set; } = 1;
 
             [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor a cero.")]
             public decimal Precio { get; set; }
+            public decimal Subtotal => Precio * Cantidad;
         }
 
     }
