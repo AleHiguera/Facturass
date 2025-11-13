@@ -1,0 +1,138 @@
+﻿@page "/editar-factura/{FacturaId:int}"
+@rendermode InteractiveServer
+@using blazor.Components.Data
+@using blazor.Components.Servicios
+@inject blazor.Components.Servicios.ServicioControlador ServicioControlador
+@inject NavigationManager Navigation
+
+<h3>📝 Editar Factura #@FacturaId</h3>
+<hr />
+
+@if (FacturaAEditar == null)
+{
+    <div class="alert alert-info">Cargando factura o no se encontró...</div>
+}
+else
+{
+    <div class="card shadow-lg p-4">
+        <EditForm Model="@FacturaAEditar" OnValidSubmit="GuardarCambios">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label for="nombreCliente" class="form-label">Nombre del Cliente</label>
+                <InputText id="nombreCliente" @bind-Value="FacturaAEditar.NombreCliente" class="form-control" />
+                <ValidationMessage For="@(() => FacturaAEditar.NombreCliente)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="fechaFactura" class="form-label">Fecha de la Factura</label>
+                <InputDate id="fechaFactura" @bind-Value="FacturaAEditar.FechaFactura" class="form-control" />
+                <ValidationMessage For="@(() => FacturaAEditar.FechaFactura)" />
+            </div>
+
+            <h4 class="mt-4">Artículos</h4>
+            <hr />
+
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Descripción</th>
+                        <th style="width: 100px;" class="text-end">Cantidad</th>
+                        <th style="width: 150px;" class="text-end">Precio Unitario</th>
+                        <th style="width: 150px;" class="text-end">Subtotal</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var articulo in FacturaAEditar.Articulos)
+                    {
+                        <tr>
+                            <td>
+                                <InputText @bind-Value="articulo.Descripcion" class="form-control form-control-sm" />
+                            </td>
+                            <td>
+                                <InputNumber @bind-Value="articulo.Cantidad" class="form-control form-control-sm text-end" @oninput="StateHasChanged" />
+                            </td>
+                            <td>
+                                <InputNumber @bind-Value="articulo.Precio" step="0.01" class="form-control form-control-sm text-end" @oninput="StateHasChanged" />
+                            </td>
+                            <td class="text-end align-middle">
+                                <strong>$@articulo.Subtotal.ToString("N2")</strong>
+                            </td>
+                            <td class="align-middle">
+                                <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoverArticulo(articulo)">
+                                    🗑️
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" class="p-0">
+                            <button type="button" class="btn btn-success w-100" @onclick="AgregarArticulo">
+                                ➕ Agregar Artículo
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="text-end" colspan="3">Total Factura:</th>
+                        <th class="text-end" colspan="2">$@FacturaAEditar.Total.ToString("N2")</th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-secondary" @onclick="Volver">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    💾 Guardar Cambios
+                </button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int FacturaId { get; set; }
+
+    private Factura? FacturaAEditar { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        FacturaAEditar = await ServicioControlador.ObtenerFacturaPorIdAsync(FacturaId);
+
+        if (FacturaAEditar == null)
+        {
+            Navigation.NavigateTo("/Vista");
+        }
+    }
+
+    private void AgregarArticulo()
+    {
+        FacturaAEditar?.Articulos.Add(new Factura.ArticuloFactura() { Cantidad = 1, Precio = 0, Descripcion = "Nuevo artículo" });
+        StateHasChanged();
+    }
+
+    private void RemoverArticulo(Factura.ArticuloFactura articulo)
+    {
+        FacturaAEditar?.Articulos.Remove(articulo);
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        if (FacturaAEditar != null)
+        {
+            await ServicioControlador.ActualizarFacturaAsync(FacturaAEditar);
+            Navigation.NavigateTo("/Vista");
+        }
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/Vista");
+    }
+}
