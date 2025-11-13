@@ -51,6 +51,17 @@ namespace blazor.Components.Servicios
         {
             await _servicioFacturas.AgregarFacturaAsync(nuevaFactura);
         }
+        public async Task ActualizarFacturaAsync(Factura facturaEditada)
+        {
+            await _servicioFacturas.ActualizarFacturaAsync(facturaEditada);
+
+            var index = _facturasEnMemoria.FindIndex(f => f.Id == facturaEditada.Id);
+            if (index != -1)
+            {
+                _facturasEnMemoria[index] = facturaEditada;
+            }
+        }
+
 
         public async Task<Factura?> ObtenerFacturaPorIdAsync(int id)
         {

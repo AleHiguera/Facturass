@@ -1,5 +1,9 @@
 ﻿using blazor.Components.Data;
 using Microsoft.Data.Sqlite;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace blazor.Components.Servicios
 {
@@ -13,6 +17,7 @@ namespace blazor.Components.Servicios
         }
 
         private SqliteConnection GetConnection() => new SqliteConnection(_connectionString);
+
         public async Task<string> ObtenerConfiguracionAsync(string clave)
         {
             using var conexion = GetConnection();
@@ -25,6 +30,7 @@ namespace blazor.Components.Servicios
             var resultado = await comando.ExecuteScalarAsync();
             return resultado?.ToString() ?? string.Empty;
         }
+
         public async Task GuardarConfiguracionAsync(string clave, string valor)
         {
             using var conexion = GetConnection();
@@ -68,6 +74,7 @@ namespace blazor.Components.Servicios
 
             return facturas;
         }
+
         public async Task<Factura?> ObtenerPorIdAsync(int id)
         {
             Factura? factura = null;
@@ -146,6 +153,7 @@ namespace blazor.Components.Servicios
 
                 long facturaId = (long)(await comandoFactura.ExecuteScalarAsync())!;
                 nuevaFactura.Id = (int)facturaId;
+
                 if (nuevaFactura.Articulos.Any())
                 {
                     foreach (var articulo in nuevaFactura.Articulos)
@@ -161,6 +169,56 @@ namespace blazor.Components.Servicios
                         comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
                         await comandoArticulo.ExecuteNonQueryAsync();
                     }
+                }
+
+                await transaccion.CommitAsync();
+            }
+            catch
+            {
+                await transaccion.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task ActualizarFacturaAsync(Factura facturaEditada)
+        {
+            using var conexion = GetConnection();
+            await conexion.OpenAsync();
+
+            using SqliteTransaction transaccion = conexion.BeginTransaction();
+            try
+            {
+                var comandoFactura = conexion.CreateCommand();
+                comandoFactura.Transaction = transaccion;
+                comandoFactura.CommandText = @"
+                    UPDATE Facturas 
+                    SET FechaFactura = @fecha, NombreCliente = @cliente 
+                    WHERE Id = @id";
+
+                comandoFactura.Parameters.AddWithValue("@id", facturaEditada.Id);
+                comandoFactura.Parameters.AddWithValue("@fecha", facturaEditada.FechaFactura.ToString("yyyy-MM-dd HH:mm:ss"));
+                comandoFactura.Parameters.AddWithValue("@cliente", facturaEditada.NombreCliente);
+
+                await comandoFactura.ExecuteNonQueryAsync();
+
+                var comandoBorrarArticulos = conexion.CreateCommand();
+                comandoBorrarArticulos.Transaction = transaccion;
+                comandoBorrarArticulos.CommandText = "DELETE FROM ArticulosFactura WHERE FacturaId = @facturaId";
+                comandoBorrarArticulos.Parameters.AddWithValue("@facturaId", facturaEditada.Id);
+                await comandoBorrarArticulos.ExecuteNonQueryAsync();
+
+                foreach (var articulo in facturaEditada.Articulos)
+                {
+                    var comandoArticulo = conexion.CreateCommand();
+                    comandoArticulo.Transaction = transaccion;
+                    comandoArticulo.CommandText = @"
+                        INSERT INTO ArticulosFactura (FacturaId, Descripcion, Precio)
+                        VALUES (@facturaId, @desc, @precio)";
+
+                    comandoArticulo.Parameters.AddWithValue("@facturaId", facturaEditada.Id);
+                    comandoArticulo.Parameters.AddWithValue("@desc", articulo.Descripcion);
+                    comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
+                    await comandoArticulo.ExecuteNonQueryAsync();
                 }
 
                 await transaccion.CommitAsync();
