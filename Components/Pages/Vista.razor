@@ -4,19 +4,39 @@
 @using blazor.Components.Servicios
 @inject blazor.Components.Servicios.ServicioControlador ServicioControlador
 @inject NavigationManager Navigation
+@inject Microsoft.JSInterop.IJSRuntime JSRuntime
 
 <h3>📄 Facturas Registradas</h3>
 <hr />
 
-<div class="input-group mb-3" style="max-width: 400px;">
-    <input @bind="ServicioControlador.FiltroNombreCliente"
-           @bind:event="oninput"
-           placeholder="Filtrar por Nombre de Cliente..."
-           class="form-control" />
+<div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+        <div class="input-group">
+            <input @bind="ServicioControlador.FiltroNombreCliente"
+                   @bind:event="oninput"
+                   placeholder="Filtrar por Nombre de Cliente..."
+                   class="form-control" />
 
-    <button class="btn btn-outline-secondary" @onclick="BorrarFiltroNombre">
-        ❌ Borrar
-    </button>
+            <button class="btn btn-outline-secondary" @onclick="BorrarFiltroNombre">
+                ❌ Borrar Filtro
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-6 d-flex justify-content-end">
+        <div class="input-group" style="max-width: 300px;">
+            <label class="input-group-text">Ordenar por:</label>
+            <select @bind="ServicioControlador.OrdenacionSeleccionada"
+                    class="form-select">
+                @foreach (var criterio in Enum.GetValues<CriterioOrdenacion>())
+                {
+                    <option value="@criterio">
+                        @ObtenerTextoCriterio(criterio)
+                    </option>
+                }
+            </select>
+        </div>
+    </div>
 </div>
 
 <hr />
@@ -37,17 +57,26 @@
                 <th>Cliente</th>
                 <th class="text-end">Artículos</th>
                 <th class="text-end">Total</th>
+                <th style="width: 100px;">Acciones</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var factura in FacturasFiltradas)
             {
-                <tr @onclick="() => VerDetalle(factura.Id)" style="cursor: pointer;">
-                    <td>@factura.Id</td>
-                    <td>@factura.FechaFactura.ToShortDateString()</td>
-                    <td>@factura.NombreCliente</td>
-                    <td class="text-end">@factura.Articulos.Count</td>
-                    <td class="text-end">$@factura.Total.ToString("N2")</td>
+                <tr style="cursor: pointer;">
+                    <td @onclick="() => VerDetalle(factura.Id)">@factura.Id</td>
+                    <td @onclick="() => VerDetalle(factura.Id)">@factura.FechaFactura.ToShortDateString()</td>
+                    <td @onclick="() => VerDetalle(factura.Id)">@factura.NombreCliente</td>
+                    <td @onclick="() => VerDetalle(factura.Id)" class="text-end">@factura.Articulos.Count</td>
+                    <td @onclick="() => VerDetalle(factura.Id)" class="text-end">$@factura.Total.ToString("N2")</td>
+                    <td class="d-flex justify-content-center gap-1">
+                        <button class="btn btn-sm btn-info" @onclick="() => EditarFactura(factura.Id)">
+                            ✏️
+                        </button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => ConfirmarEliminar(factura.Id)">
+                            🗑️
+                        </button>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -63,10 +92,22 @@ else
 @code {
     protected override async Task OnInitializedAsync()
     {
+        await ServicioControlador.CargarFiltroAsync();
         await ServicioControlador.CargarFacturasAsync();
     }
 
     private IEnumerable<Factura> FacturasFiltradas => ServicioControlador.ObtenerFacturasFiltradas();
+
+    private string ObtenerTextoCriterio(CriterioOrdenacion criterio)
+    {
+        return criterio switch
+        {
+            CriterioOrdenacion.FechaDescendente => "Fecha (Más Reciente)",
+            CriterioOrdenacion.IdDescendente => "ID (Más Alto)",
+            CriterioOrdenacion.NombreClienteAscendente => "Cliente (A-Z)",
+            _ => criterio.ToString()
+        };
+    }
 
     private void BorrarFiltroNombre()
     {
@@ -82,5 +123,28 @@ else
     private void CrearNuevaFactura()
     {
         Navigation.NavigateTo("/nueva-factura");
+    }
+
+    private void EditarFactura(int facturaId)
+    {
+        Navigation.NavigateTo($"/editar-factura/{facturaId}");
+    }
+
+    private async Task ConfirmarEliminar(int facturaId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"¿Está seguro de eliminar la Factura # {facturaId} y todos sus artículos?");
+
+        if (confirmed)
+        {
+            try
+            {
+                await ServicioControlador.EliminarFacturaAsync(facturaId);
+                StateHasChanged(); 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar la factura: {ex.Message}");
+            }
+        }
     }
 }
