@@ -13,6 +13,30 @@ namespace blazor.Components.Servicios
         }
 
         private SqliteConnection GetConnection() => new SqliteConnection(_connectionString);
+        public async Task<string> ObtenerConfiguracionAsync(string clave)
+        {
+            using var conexion = GetConnection();
+            await conexion.OpenAsync();
+
+            var comando = conexion.CreateCommand();
+            comando.CommandText = "SELECT valor FROM configuracion WHERE clave = @clave";
+            comando.Parameters.AddWithValue("@clave", clave);
+
+            var resultado = await comando.ExecuteScalarAsync();
+            return resultado?.ToString() ?? string.Empty;
+        }
+        public async Task GuardarConfiguracionAsync(string clave, string valor)
+        {
+            using var conexion = GetConnection();
+            await conexion.OpenAsync();
+
+            var comando = conexion.CreateCommand();
+            comando.CommandText = "INSERT OR REPLACE INTO configuracion (clave, valor) VALUES (@clave, @valor)";
+            comando.Parameters.AddWithValue("@clave", clave);
+            comando.Parameters.AddWithValue("@valor", valor);
+
+            await comando.ExecuteNonQueryAsync();
+        }
 
         public async Task<IEnumerable<Factura>> ObtenerTodasAsync()
         {
@@ -68,6 +92,7 @@ namespace blazor.Components.Servicios
                     };
                 }
             }
+
             if (factura != null)
             {
                 factura.Articulos.AddRange(
@@ -77,6 +102,7 @@ namespace blazor.Components.Servicios
 
             return factura;
         }
+
         private async Task<IEnumerable<Factura.ArticuloFactura>> ObtenerArticulosPorFacturaIdAsync(int facturaId, SqliteConnection conexion)
         {
             List<Factura.ArticuloFactura> articulos = new();
