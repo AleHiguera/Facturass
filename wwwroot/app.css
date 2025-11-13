@@ -36,3 +36,72 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+/* 1. Fondo de la página */
+.taylor-swift-bg {
+    min-height: 90vh; /* Asegura que cubra la mayor parte de la pantalla */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fce4ec; /* Rosa muy claro/pastel */
+    background-image: radial-gradient(#ffffff, transparent 50%), radial-gradient(#ffd6e0, transparent 80%);
+    background-position: top left, bottom right;
+    background-repeat: no-repeat;
+    background-size: 50% 50%, 40% 40%;
+}
+
+/* 2. Tarjeta contenedora del contenido */
+.taylor-swift-card {
+    background-color: #ffffff; /* Fondo blanco para contraste */
+    padding: 40px 60px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3); /* Sombra rosa sutil */
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+    margin: 20px auto;
+}
+
+/* 3. Estilo del Título H1 */
+.ts-title {
+    font-family: 'Georgia', serif; /* Fuente más clásica y elegante */
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #333; /* Color oscuro para legibilidad */
+}
+
+/* Color destacado para el título */
+.ts-pink {
+    color: #ff69b4; /* Hot Pink / Rosa chicle */
+    text-shadow: 1px 1px 3px rgba(255, 105, 180, 0.4); /* Pequeño brillo */
+}
+
+/* 4. Subtítulo P */
+.ts-subtitle {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 2rem;
+    font-family: 'Segoe Script', cursive; /* O cualquier fuente cursiva elegante que tengas */
+}
+
+/* 5. Estilo del Botón de Navegación */
+.ts-button {
+    display: inline-block;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 50px; /* Bordes redondeados */
+    background-color: #ffb6c1; /* Rosa claro/pastel */
+    color: #8b0000; /* Color vino/oscuro para el texto */
+    border: 2px solid #ff69b4; /* Borde rosa más fuerte */
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4); /* Sombra tipo glow */
+}
+
+    .ts-button:hover {
+        background-color: #ff85a2; /* Rosa un poco más oscuro al pasar el mouse */
+        color: #ffffff; /* Texto blanco al pasar el mouse */
+        box-shadow: 0 8px 20px rgba(255, 105, 180, 0.6);
+        transform: translateY(-2px);
+    }
