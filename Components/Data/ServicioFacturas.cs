@@ -229,5 +229,34 @@ namespace blazor.Components.Servicios
                 throw;
             }
         }
+
+        public async Task EliminarFacturaAsync(int facturaId)
+        {
+            using var conexion = GetConnection();
+            await conexion.OpenAsync();
+
+            using SqliteTransaction transaccion = conexion.BeginTransaction();
+            try
+            {
+                var comandoBorrarArticulos = conexion.CreateCommand();
+                comandoBorrarArticulos.Transaction = transaccion;
+                comandoBorrarArticulos.CommandText = "DELETE FROM ArticulosFactura WHERE FacturaId = @facturaId";
+                comandoBorrarArticulos.Parameters.AddWithValue("@facturaId", facturaId);
+                await comandoBorrarArticulos.ExecuteNonQueryAsync();
+
+                var comandoBorrarFactura = conexion.CreateCommand();
+                comandoBorrarFactura.Transaction = transaccion;
+                comandoBorrarFactura.CommandText = "DELETE FROM Facturas WHERE Id = @facturaId";
+                comandoBorrarFactura.Parameters.AddWithValue("@facturaId", facturaId);
+                await comandoBorrarFactura.ExecuteNonQueryAsync();
+
+                await transaccion.CommitAsync();
+            }
+            catch
+            {
+                await transaccion.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

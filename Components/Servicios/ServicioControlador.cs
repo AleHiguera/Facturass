@@ -3,15 +3,26 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+
 namespace blazor.Components.Servicios
 {
+    public enum CriterioOrdenacion
+    {
+        FechaDescendente, 
+        IdDescendente,
+        NombreClienteAscendente
+    }
+
     public class ServicioControlador
     {
         private readonly ServicioFacturas _servicioFacturas;
 
         private const string CLAVE_FILTRO_CLIENTE = "FiltroNombreCliente";
+        private const string CLAVE_ORDENACION = "CriterioOrdenacion";
 
         public string FiltroNombreCliente { get; set; } = string.Empty;
+
+        public CriterioOrdenacion OrdenacionSeleccionada { get; set; } = CriterioOrdenacion.FechaDescendente;
 
         private List<Factura> _facturasEnMemoria = new List<Factura>();
 
@@ -19,9 +30,16 @@ namespace blazor.Components.Servicios
         {
             _servicioFacturas = servicioFacturas;
         }
+
         public async Task CargarFiltroAsync()
         {
             FiltroNombreCliente = await _servicioFacturas.ObtenerConfiguracionAsync(CLAVE_FILTRO_CLIENTE);
+
+            var ordenacionGuardada = await _servicioFacturas.ObtenerConfiguracionAsync(CLAVE_ORDENACION);
+            if (Enum.TryParse(ordenacionGuardada, out CriterioOrdenacion orden))
+            {
+                OrdenacionSeleccionada = orden;
+            }
         }
 
         public async Task CargarFacturasAsync()
@@ -39,18 +57,27 @@ namespace blazor.Components.Servicios
                     f.NombreCliente.Contains(FiltroNombreCliente, StringComparison.OrdinalIgnoreCase));
             }
 
+            resultado = OrdenacionSeleccionada switch
+            {
+                CriterioOrdenacion.IdDescendente => resultado.OrderByDescending(f => f.Id),
+                CriterioOrdenacion.NombreClienteAscendente => resultado.OrderBy(f => f.NombreCliente),
+                CriterioOrdenacion.FechaDescendente or _ => resultado.OrderByDescending(f => f.FechaFactura),
+            };
+
             Task.Run(async () =>
             {
                 await _servicioFacturas.GuardarConfiguracionAsync(CLAVE_FILTRO_CLIENTE, FiltroNombreCliente);
+                await _servicioFacturas.GuardarConfiguracionAsync(CLAVE_ORDENACION, OrdenacionSeleccionada.ToString());
             }).FireAndForget();
 
-            return resultado.OrderByDescending(f => f.FechaFactura);
+            return resultado;
         }
 
         public async Task GuardarNuevaFacturaAsync(Factura nuevaFactura)
         {
             await _servicioFacturas.AgregarFacturaAsync(nuevaFactura);
         }
+
         public async Task ActualizarFacturaAsync(Factura facturaEditada)
         {
             await _servicioFacturas.ActualizarFacturaAsync(facturaEditada);
@@ -62,6 +89,15 @@ namespace blazor.Components.Servicios
             }
         }
 
+        public async Task EliminarFacturaAsync(int facturaId)
+        {
+            await _servicioFacturas.EliminarFacturaAsync(facturaId);
+            var facturaAEliminar = _facturasEnMemoria.FirstOrDefault(f => f.Id == facturaId);
+            if (facturaAEliminar != null)
+            {
+                _facturasEnMemoria.Remove(facturaAEliminar);
+            }
+        }
 
         public async Task<Factura?> ObtenerFacturaPorIdAsync(int id)
         {
@@ -81,6 +117,7 @@ namespace blazor.Components.Servicios
             return facturaDesdeDB;
         }
     }
+
     public static class TaskExtension
     {
         public static void FireAndForget(this Task task)
