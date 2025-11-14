@@ -5,94 +5,112 @@
 @inject blazor.Components.Servicios.ServicioControlador ServicioControlador
 @inject NavigationManager Navigation
 
-<h3>📝 Editar Factura #@FacturaId</h3>
-<hr />
+<div class="taylor-swift-bg">
+    <div class="taylor-swift-card" style="max-width: 900px; padding: 30px; margin: 30px auto;">
 
-@if (FacturaAEditar == null)
-{
-    <div class="alert alert-info">Cargando factura o no se encontró...</div>
-}
-else
-{
-    <div class="card shadow-lg p-4">
-        <EditForm Model="@FacturaAEditar" OnValidSubmit="GuardarCambios">
-            <DataAnnotationsValidator />
+        <h3 class="ts-title" style="font-size: 2.5rem; margin-bottom: 0;">
+            <span class="ts-pink">📝 Editar Factura #@FacturaId ✨</span>
+        </h3>
 
-            <div class="mb-3">
-                <label for="nombreCliente" class="form-label">Nombre del Cliente</label>
-                <InputText id="nombreCliente" @bind-Value="FacturaAEditar.NombreCliente" class="form-control" />
-                <ValidationMessage For="@(() => FacturaAEditar.NombreCliente)" />
+        <hr style="border-color: #ffb6c1;" />
+
+        @if (FacturaAEditar == null)
+        {
+            <div class="alert alert-info" style="background-color: #fff0f5; color: #ff69b4; border-color: #ffb6c1;">
+                Cargando factura o no se encontró...
             </div>
+        }
+        else
+        {
+            <EditForm Model="@FacturaAEditar" OnValidSubmit="GuardarCambios">
+                <DataAnnotationsValidator />
 
-            <div class="mb-3">
-                <label for="fechaFactura" class="form-label">Fecha de la Factura</label>
-                <InputDate id="fechaFactura" @bind-Value="FacturaAEditar.FechaFactura" class="form-control" />
-                <ValidationMessage For="@(() => FacturaAEditar.FechaFactura)" />
-            </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nombreCliente" class="form-label" style="color: #8b0000; font-weight: 600;">Nombre del Cliente</label>
+                        <InputText id="nombreCliente" @bind-Value="FacturaAEditar.NombreCliente" class="form-control" style="border-color: #ffb6c1;" />
+                        <ValidationMessage For="@(() => FacturaAEditar.NombreCliente)" style="color: #e50000;" />
+                    </div>
 
-            <h4 class="mt-4">Artículos</h4>
-            <hr />
+                    <div class="col-md-6 mb-3">
+                        <label for="fechaFactura" class="form-label" style="color: #8b0000; font-weight: 600;">Fecha de la Factura</label>
+                        <InputDate id="fechaFactura" @bind-Value="FacturaAEditar.FechaFactura" class="form-control" style="border-color: #ffb6c1;" />
+                        <ValidationMessage For="@(() => FacturaAEditar.FechaFactura)" style="color: #e50000;" />
+                    </div>
+                </div>
 
-            <table class="table table-bordered">
-                <thead class="table-light">
-                    <tr>
-                        <th>Descripción</th>
-                        <th style="width: 100px;" class="text-end">Cantidad</th>
-                        <th style="width: 150px;" class="text-end">Precio Unitario</th>
-                        <th style="width: 150px;" class="text-end">Subtotal</th>
-                        <th style="width: 50px;"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var articulo in FacturaAEditar.Articulos)
-                    {
-                        <tr>
-                            <td>
-                                <InputText @bind-Value="articulo.Descripcion" class="form-control form-control-sm" />
-                            </td>
-                            <td>
-                                <InputNumber @bind-Value="articulo.Cantidad" class="form-control form-control-sm text-end" @oninput="StateHasChanged" />
-                            </td>
-                            <td>
-                                <InputNumber @bind-Value="articulo.Precio" step="0.01" class="form-control form-control-sm text-end" @oninput="StateHasChanged" />
-                            </td>
-                            <td class="text-end align-middle">
-                                <strong>$@articulo.Subtotal.ToString("N2")</strong>
-                            </td>
-                            <td class="align-middle">
-                                <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoverArticulo(articulo)">
-                                    🗑️
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="5" class="p-0">
-                            <button type="button" class="btn btn-success w-100" @onclick="AgregarArticulo">
-                                ➕ Agregar Artículo
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="text-end" colspan="3">Total Factura:</th>
-                        <th class="text-end" colspan="2">$@FacturaAEditar.Total.ToString("N2")</th>
-                    </tr>
-                </tfoot>
-            </table>
+                <h4 class="mt-4" style="color: #ff69b4; font-weight: 700;">Artículos</h4>
+                <hr style="border-color: #ffb6c1;" />
 
-            <div class="d-flex justify-content-between mt-4">
-                <button type="button" class="btn btn-secondary" @onclick="Volver">
-                    Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    💾 Guardar Cambios
-                </button>
-            </div>
-        </EditForm>
+                <div class="table-responsive">
+                    <table class="table table-bordered" style="border-radius: 10px; overflow: hidden; border: 1px solid #ffb6c1;">
+                        <thead style="background-color: #ff69b4; color: white;">
+                            <tr>
+                                <th>Descripción</th>
+                                <th style="width: 100px;" class="text-end">Cantidad</th>
+                                <th style="width: 150px;" class="text-end">Precio Unitario</th>
+                                <th style="width: 150px;" class="text-end">Subtotal</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var articulo in FacturaAEditar.Articulos)
+                            {
+                                <tr style="background-color: @(FacturaAEditar.Articulos.IndexOf(articulo) % 2 == 0 ? "white" : "#fce4ec");">
+                                    <td>
+                                        <InputText @bind-Value="articulo.Descripcion" class="form-control" style="border-color: #ffb6c1; padding: 0.25rem 0.5rem;" />
+                                        <ValidationMessage For="@(() => articulo.Descripcion)" style="color: #e50000;" />
+                                    </td>
+                                    <td>
+                                        <InputNumber @bind-Value="articulo.Cantidad" class="form-control text-end" @oninput="StateHasChanged" style="border-color: #ffb6c1; padding: 0.25rem 0.5rem;" />
+                                        <ValidationMessage For="@(() => articulo.Cantidad)" style="color: #e50000;" />
+                                    </td>
+                                    <td>
+                                        <InputNumber @bind-Value="articulo.Precio" step="0.01" class="form-control text-end" @oninput="StateHasChanged" style="border-color: #ffb6c1; padding: 0.25rem 0.5rem;" />
+                                        <ValidationMessage For="@(() => articulo.Precio)" style="color: #e50000;" />
+                                    </td>
+                                    <td class="text-end align-middle" style="color: #ff69b4; font-weight: 700;">
+                                        <strong>$@articulo.Subtotal.ToString("N2")</strong>
+                                    </td>
+                                    <td class="align-middle">
+                                        <button type="button" class="btn btn-sm" @onclick="() => RemoverArticulo(articulo)"
+                                                style="background-color: #ffb6c1; border-color: #ff69b4; color: #8b0000;">
+                                            🗑️
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" style="background-color: white;">
+                                    <button type="button" class="ts-button" @onclick="AgregarArticulo" style="font-size: 1rem; padding: 10px 20px; background-color: #b5e7a9; color: #38761d; border-color: #70ad47;">
+                                        ➕ Agregar Artículo
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr style="background-color: #ff69b4; color: white; font-size: 1.1rem; font-weight: 700;">
+                                <th class="text-end" colspan="3">Total Factura:</th>
+                                <th class="text-end" colspan="2">$@FacturaAEditar.Total.ToString("N2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary" @onclick="Volver"
+                            style="background-color: #fce4ec; color: #8b0000; border-color: #ffb6c1;">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="ts-button" style="font-size: 1rem; padding: 10px 20px;">
+                        💾 Guardar Cambios
+                    </button>
+                </div>
+            </EditForm>
+        }
     </div>
-}
+</div>
 
 @code {
     [Parameter]
@@ -112,7 +130,7 @@ else
 
     private void AgregarArticulo()
     {
-        FacturaAEditar?.Articulos.Add(new Factura.ArticuloFactura() { Cantidad = 1, Precio = 0, Descripcion = "Nuevo artículo" });
+        FacturaAEditar?.Articulos.Add(new Factura.ArticuloFactura() { Cantidad = 1, Precio = 0.01m, Descripcion = "Nuevo artículo" });
         StateHasChanged();
     }
 

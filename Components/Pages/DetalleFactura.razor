@@ -5,67 +5,77 @@
 @inject blazor.Components.Servicios.ServicioControlador ServicioControlador
 @inject NavigationManager Navigation
 
-<button class="btn btn-secondary mb-3" @onclick="VolverALista">
-    &larr; Volver a Facturas
-</button>
+<div class="taylor-swift-bg">
+    <div class="taylor-swift-card" style="max-width: 900px; padding: 30px; margin: 30px auto;">
 
-@if (FacturaDetalle == null)
-{
-    <h3>Factura no encontrada</h3>
-    <div class="alert alert-danger">
-        No se pudo cargar la factura con ID: **@FacturaId**.
+        <button class="ts-button mb-4" @onclick="VolverALista" style="font-size: 1rem; padding: 10px 20px; background-color: #fce4ec; color: #8b0000; border-color: #ffb6c1;">
+            &larr; Volver a Facturas
+        </button>
+
+        @if (FacturaDetalle == null)
+        {
+            <h3 class="ts-title" style="color: #e50000;">Factura no encontrada 💔</h3>
+            <div class="alert alert-danger" style="background-color: #fff0f5; color: #ff69b4; border-color: #ffb6c1;">
+                No se pudo cargar la factura con ID: **@FacturaId**.
+            </div>
+        }
+        else
+        {
+            <h3 class="ts-title" style="font-size: 2.5rem; margin-bottom: 0;">
+                <span class="ts-pink">Detalle de Factura #@FacturaDetalle.Id 📑💖</span>
+            </h3>
+
+            <hr style="border-color: #ffb6c1;" />
+
+            <div class="card shadow-lg" style="border: 1px solid #ff69b4; border-radius: 10px; overflow: hidden;">
+                <div class="card-header" style="background-color: #ff69b4; color: white;">
+                    <h5 class="mb-0">Cliente: **@FacturaDetalle.NombreCliente**</h5>
+                </div>
+                <div class="card-body" style="background-color: white;">
+                    <p style="color: #8b0000;"><strong>Fecha:</strong> @FacturaDetalle.FechaFactura.ToShortDateString()</p>
+                    <hr style="border-color: #ffb6c1;" />
+
+                    <h5 style="color: #ff69b4; font-weight: 700;">Artículos Incluidos:</h5>
+                    <table class="table table-hover table-striped" style="border: 1px solid #ffb6c1;">
+                        <thead style="background-color: #ffb6c1; color: #8b0000;">
+                            <tr>
+                                <th>Descripción</th>
+                                <th class="text-end">Cantidad</th>
+                                <th class="text-end">Precio Unitario</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in FacturaDetalle.Articulos)
+                            {
+                                <tr style="cursor: default;">
+                                    <td>@item.Descripcion</td>
+                                    <td class="text-end">@item.Cantidad</td>
+                                    <td class="text-end">$@item.Precio.ToString("N2")</td>
+                                    <td class="text-end">$@item.Subtotal.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #8b0000; color: white; font-size: 1.2rem; font-weight: 700;">
+                                <th colspan="3">TOTAL DE FACTURA</th>
+                                <th class="text-end">$@FacturaDetalle.Total.ToString("N2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        }
     </div>
-}
-else
-{
-    <h3>Detalle de Factura #@FacturaDetalle.Id 📑</h3>
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Cliente: **@FacturaDetalle.NombreCliente**</h5>
-        </div>
-        <div class="card-body">
-            <p><strong>Fecha:</strong> @FacturaDetalle.FechaFactura.ToShortDateString()</p>
-            <hr />
-
-            <h5>Artículos Incluidos:</h5>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Descripción</th>
-                        <th class="text-end">Precio</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in FacturaDetalle.Articulos)
-                    {
-                        <tr>
-                            <td>@item.Descripcion</td>
-                            <td class="text-end">$@item.Precio.ToString("N2")</td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr class="table-dark">
-                        <th>TOTAL DE FACTURA</th>
-                        <th class="text-end">$@FacturaDetalle.Total.ToString("N2")</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-}
+</div>
 
 @code {
     [Parameter]
     public int FacturaId { get; set; }
 
     private Factura? FacturaDetalle { get; set; }
-
-    // El cambio clave: Usar OnInitializedAsync para llamar a la función asíncrona.
     protected override async Task OnInitializedAsync()
     {
-        // Llamada al método asíncrono y actualizado del ServicioControlador
         FacturaDetalle = await ServicioControlador.ObtenerFacturaPorIdAsync(FacturaId);
     }
 
