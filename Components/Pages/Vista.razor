@@ -47,11 +47,15 @@
             </div>
         </div>
 
-        <p class="text-start mb-4">
+        <div class="d-flex justify-content-between mb-4">
             <button class="ts-button" @onclick="CrearNuevaFactura">
                 ➕ Crear Nueva Factura
             </button>
-        </p>
+
+            <button class="ts-button" @onclick="IrAReporteSAT" style="background-color: #b5e7a9; color: #38761d; border-color: #70ad47;">
+                📊 Reporte SAT
+            </button>
+        </div>
 
         @if (FacturasFiltradas.Any())
         {
@@ -149,6 +153,11 @@
     private void CrearNuevaFactura()
     {
         Navigation.NavigateTo("/nueva-factura");
+    }
+
+    private void IrAReporteSAT()
+    {
+        Navigation.NavigateTo("/reporte-sat");
     }
 
     private void EditarFactura(int facturaId)
