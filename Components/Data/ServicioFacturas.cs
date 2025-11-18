@@ -45,11 +45,6 @@ namespace blazor.Components.Servicios
 
             await comando.ExecuteNonQueryAsync();
         }
-
-        // =========================================================================
-        // MÉTODO AUXILIAR CORREGIDO: Trae todas las facturas del año especificado (o todas si anio es 0)
-        // ESTO EVITA LA CACHÉ DEL CONTROLADOR PARA REPORTES ESPECÍFICOS.
-        // =========================================================================
         private async Task<IEnumerable<Factura>> ObtenerFacturasPorAnioAsync(int? anio = null)
         {
             List<Factura> facturas = new();
@@ -281,17 +276,9 @@ namespace blazor.Components.Servicios
                 throw;
             }
         }
-
-        // =========================================================================
-        // MÉTODO DE REPORTE CORREGIDO: USA ObtenerFacturasPorAnioAsync
-        // =========================================================================
         public async Task<IEnumerable<ReporteMensual>> ObtenerReporteAnualAsync(int anio)
         {
-            // CAMBIO CRÍTICO: Llamamos al nuevo método que va a la DB y filtra por año
             var facturasDelAnio = (await ObtenerFacturasPorAnioAsync(anio)).ToList();
-
-            // Si no hay facturas, la lista facturasDelAnio estará vacía, y el resto del código es correcto
-            // para devolver 12 meses con ceros.
 
             var reporteAgrupado = facturasDelAnio
                 .GroupBy(f => f.FechaFactura.Month)
