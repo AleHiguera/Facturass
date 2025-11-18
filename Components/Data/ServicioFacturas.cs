@@ -115,7 +115,7 @@ namespace blazor.Components.Servicios
             List<Factura.ArticuloFactura> articulos = new();
 
             var comando = conexion.CreateCommand();
-            comando.CommandText = "SELECT Id, Descripcion, Precio FROM ArticulosFactura WHERE FacturaId = @facturaId";
+            comando.CommandText = "SELECT Id, Descripcion, Cantidad, Precio FROM ArticulosFactura WHERE FacturaId = @facturaId";
             comando.Parameters.Clear();
             comando.Parameters.AddWithValue("@facturaId", facturaId);
 
@@ -126,7 +126,8 @@ namespace blazor.Components.Servicios
                 {
                     Id = reader.GetInt32(0),
                     Descripcion = reader.GetString(1),
-                    Precio = reader.GetDecimal(2)
+                    Cantidad = reader.GetInt32(2),
+                    Precio = reader.GetDecimal(3)
                 });
             }
 
@@ -161,11 +162,11 @@ namespace blazor.Components.Servicios
                         var comandoArticulo = conexion.CreateCommand();
                         comandoArticulo.Transaction = transaccion;
                         comandoArticulo.CommandText = @"
-                            INSERT INTO ArticulosFactura (FacturaId, Descripcion, Precio)
-                            VALUES (@facturaId, @desc, @precio)";
-
-                        comandoArticulo.Parameters.AddWithValue("@facturaId", facturaId);
+                INSERT INTO ArticulosFactura (FacturaId, Descripcion, Cantidad, Precio) 
+                VALUES (@facturaId, @desc, @cantidad, @precio)";
+            comandoArticulo.Parameters.AddWithValue("@facturaId", facturaId);
                         comandoArticulo.Parameters.AddWithValue("@desc", articulo.Descripcion);
+                        comandoArticulo.Parameters.AddWithValue("@cantidad", articulo.Cantidad); 
                         comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
                         await comandoArticulo.ExecuteNonQueryAsync();
                     }
@@ -212,12 +213,13 @@ namespace blazor.Components.Servicios
                     var comandoArticulo = conexion.CreateCommand();
                     comandoArticulo.Transaction = transaccion;
                     comandoArticulo.CommandText = @"
-                        INSERT INTO ArticulosFactura (FacturaId, Descripcion, Precio)
-                        VALUES (@facturaId, @desc, @precio)";
+            INSERT INTO ArticulosFactura (FacturaId, Descripcion, Cantidad, Precio) 
+            VALUES (@facturaId, @desc, @cantidad, @precio)"; 
 
-                    comandoArticulo.Parameters.AddWithValue("@facturaId", facturaEditada.Id);
+        comandoArticulo.Parameters.AddWithValue("@facturaId", facturaEditada.Id);
                     comandoArticulo.Parameters.AddWithValue("@desc", articulo.Descripcion);
-                    comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
+                    comandoArticulo.Parameters.AddWithValue("@cantidad", articulo.Cantidad); 
+        comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
                     await comandoArticulo.ExecuteNonQueryAsync();
                 }
 

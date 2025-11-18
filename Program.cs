@@ -59,11 +59,13 @@ comando.CommandText = """
         Id INTEGER PRIMARY KEY AUTOINCREMENT,
         FacturaId INTEGER NOT NULL,
         Descripcion TEXT NOT NULL,
+        Cantidad INTEGER NOT NULL, 
         Precio REAL NOT NULL,
         FOREIGN KEY(FacturaId) REFERENCES Facturas(Id)
     );
     """;
 comando.ExecuteNonQuery();
+
 comando.CommandText = """
     CREATE TABLE IF NOT EXISTS configuracion (
         clave TEXT PRIMARY KEY,
