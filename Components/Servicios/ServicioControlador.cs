@@ -1,14 +1,15 @@
-﻿using blazor.Components.Data;
-using System.Linq;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using System;
+using blazor.Components.Data;
+using static blazor.Components.Data.Factura;
 
 namespace blazor.Components.Servicios
 {
     public enum CriterioOrdenacion
     {
-        FechaDescendente, 
+        FechaDescendente,
         IdDescendente,
         NombreClienteAscendente
     }
@@ -44,6 +45,7 @@ namespace blazor.Components.Servicios
 
         public async Task CargarFacturasAsync()
         {
+            // Este método siempre va a la DB y reemplaza la caché
             _facturasEnMemoria = (await _servicioFacturas.ObtenerTodasAsync()).ToList();
         }
 
@@ -115,6 +117,21 @@ namespace blazor.Components.Servicios
             }
 
             return facturaDesdeDB;
+        }
+
+        public async Task<IEnumerable<Factura>> ObtenerTodasFacturasAsync()
+        {
+            if (!_facturasEnMemoria.Any())
+            {
+                await CargarFacturasAsync();
+            }
+            return _facturasEnMemoria;
+        }
+        public async Task<IEnumerable<ReporteMensual>> ObtenerReporteAnualAsync(int anio)
+        {
+            await CargarFacturasAsync();
+
+            return await _servicioFacturas.ObtenerReporteAnualAsync(anio);
         }
     }
 

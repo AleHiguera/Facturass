@@ -1,9 +1,11 @@
-﻿using blazor.Components.Data;
-using Microsoft.Data.Sqlite;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
+using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
+using blazor.Components.Data;
+using Microsoft.Data.Sqlite;
+using static blazor.Components.Data.Factura;
 
 namespace blazor.Components.Servicios
 {
@@ -44,7 +46,11 @@ namespace blazor.Components.Servicios
             await comando.ExecuteNonQueryAsync();
         }
 
-        public async Task<IEnumerable<Factura>> ObtenerTodasAsync()
+        // =========================================================================
+        // MÉTODO AUXILIAR CORREGIDO: Trae todas las facturas del año especificado (o todas si anio es 0)
+        // ESTO EVITA LA CACHÉ DEL CONTROLADOR PARA REPORTES ESPECÍFICOS.
+        // =========================================================================
+        private async Task<IEnumerable<Factura>> ObtenerFacturasPorAnioAsync(int? anio = null)
         {
             List<Factura> facturas = new();
 
@@ -52,7 +58,16 @@ namespace blazor.Components.Servicios
             await conexion.OpenAsync();
 
             var comando = conexion.CreateCommand();
-            comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas ORDER BY Id DESC";
+
+            if (anio.HasValue)
+            {
+                comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas WHERE FechaFactura LIKE @anio || '-%' ORDER BY Id DESC";
+                comando.Parameters.AddWithValue("@anio", anio.Value.ToString());
+            }
+            else
+            {
+                comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas ORDER BY Id DESC";
+            }
 
             using var reader = await comando.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -73,6 +88,11 @@ namespace blazor.Components.Servicios
             }
 
             return facturas;
+        }
+
+        public async Task<IEnumerable<Factura>> ObtenerTodasAsync()
+        {
+            return await ObtenerFacturasPorAnioAsync(null);
         }
 
         public async Task<Factura?> ObtenerPorIdAsync(int id)
@@ -137,7 +157,7 @@ namespace blazor.Components.Servicios
         public async Task AgregarFacturaAsync(Factura nuevaFactura)
         {
             using var conexion = GetConnection();
-            conexion.Open();
+            await conexion.OpenAsync();
 
             using SqliteTransaction transaccion = conexion.BeginTransaction();
             try
@@ -162,11 +182,12 @@ namespace blazor.Components.Servicios
                         var comandoArticulo = conexion.CreateCommand();
                         comandoArticulo.Transaction = transaccion;
                         comandoArticulo.CommandText = @"
-                INSERT INTO ArticulosFactura (FacturaId, Descripcion, Cantidad, Precio) 
-                VALUES (@facturaId, @desc, @cantidad, @precio)";
-            comandoArticulo.Parameters.AddWithValue("@facturaId", facturaId);
+                            INSERT INTO ArticulosFactura (FacturaId, Descripcion, Cantidad, Precio) 
+                            VALUES (@facturaId, @desc, @cantidad, @precio)";
+
+                        comandoArticulo.Parameters.AddWithValue("@facturaId", facturaId);
                         comandoArticulo.Parameters.AddWithValue("@desc", articulo.Descripcion);
-                        comandoArticulo.Parameters.AddWithValue("@cantidad", articulo.Cantidad); 
+                        comandoArticulo.Parameters.AddWithValue("@cantidad", articulo.Cantidad);
                         comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
                         await comandoArticulo.ExecuteNonQueryAsync();
                     }
@@ -213,13 +234,13 @@ namespace blazor.Components.Servicios
                     var comandoArticulo = conexion.CreateCommand();
                     comandoArticulo.Transaction = transaccion;
                     comandoArticulo.CommandText = @"
-            INSERT INTO ArticulosFactura (FacturaId, Descripcion, Cantidad, Precio) 
-            VALUES (@facturaId, @desc, @cantidad, @precio)"; 
+                        INSERT INTO ArticulosFactura (FacturaId, Descripcion, Cantidad, Precio) 
+                        VALUES (@facturaId, @desc, @cantidad, @precio)";
 
-        comandoArticulo.Parameters.AddWithValue("@facturaId", facturaEditada.Id);
+                    comandoArticulo.Parameters.AddWithValue("@facturaId", facturaEditada.Id);
                     comandoArticulo.Parameters.AddWithValue("@desc", articulo.Descripcion);
-                    comandoArticulo.Parameters.AddWithValue("@cantidad", articulo.Cantidad); 
-        comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
+                    comandoArticulo.Parameters.AddWithValue("@cantidad", articulo.Cantidad);
+                    comandoArticulo.Parameters.AddWithValue("@precio", articulo.Precio);
                     await comandoArticulo.ExecuteNonQueryAsync();
                 }
 
@@ -259,6 +280,53 @@ namespace blazor.Components.Servicios
                 await transaccion.RollbackAsync();
                 throw;
             }
+        }
+
+        // =========================================================================
+        // MÉTODO DE REPORTE CORREGIDO: USA ObtenerFacturasPorAnioAsync
+        // =========================================================================
+        public async Task<IEnumerable<ReporteMensual>> ObtenerReporteAnualAsync(int anio)
+        {
+            // CAMBIO CRÍTICO: Llamamos al nuevo método que va a la DB y filtra por año
+            var facturasDelAnio = (await ObtenerFacturasPorAnioAsync(anio)).ToList();
+
+            // Si no hay facturas, la lista facturasDelAnio estará vacía, y el resto del código es correcto
+            // para devolver 12 meses con ceros.
+
+            var reporteAgrupado = facturasDelAnio
+                .GroupBy(f => f.FechaFactura.Month)
+                .Select(g => new ReporteMensual
+                {
+                    MesNumero = g.Key,
+                    NombreMes = new DateTime(anio, g.Key, 1).ToString("MMMM", new CultureInfo("es-ES")),
+                    CantidadFacturas = g.Count(),
+                    TotalMes = g.Sum(f => f.Total)
+                })
+                .OrderBy(r => r.MesNumero)
+                .ToList();
+
+            var reporteCompleto = new List<ReporteMensual>();
+
+            for (int i = 1; i <= 12; i++)
+            {
+                var mesReportado = reporteAgrupado.FirstOrDefault(r => r.MesNumero == i);
+                if (mesReportado == null)
+                {
+                    reporteCompleto.Add(new ReporteMensual
+                    {
+                        MesNumero = i,
+                        NombreMes = new DateTime(anio, i, 1).ToString("MMMM", new CultureInfo("es-ES")),
+                        CantidadFacturas = 0,
+                        TotalMes = 0.00m
+                    });
+                }
+                else
+                {
+                    reporteCompleto.Add(mesReportado);
+                }
+            }
+
+            return reporteCompleto;
         }
     }
 }
