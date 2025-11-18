@@ -1,0 +1,120 @@
+﻿@page "/reporte-sat"
+@rendermode InteractiveServer
+@using blazor.Components.Data
+@using blazor.Components.Servicios
+@inject blazor.Components.Servicios.ServicioControlador ServicioControlador
+@inject NavigationManager Navigation
+
+<div class="taylor-swift-bg">
+    <div class="taylor-swift-card" style="max-width: 1000px; padding: 30px; margin: 30px auto;">
+
+        <h3 class="ts-title" style="font-size: 2.5rem; margin-bottom: 0;">
+            <span class="ts-pink">📊 Reporte SAT Anual ✨</span>
+        </h3>
+        <p class="ts-subtitle">Selecciona el año para generar el resumen mensual de facturas.</p>
+
+        <hr style="border-color: #ffb6c1;" />
+
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-3">
+                <label for="selectAnio" class="form-label" style="color: #8b0000; font-weight: 600;">Seleccionar Año</label>
+            </div>
+            <div class="col-md-3">
+                <InputSelect @bind-Value="AnioSeleccionado" 
+                             class="form-select" 
+                             id="selectAnio" 
+                             @onchange="CargarReporte" 
+                             style="border-color: #ffb6c1;">
+                    @foreach (var anio in AñosDisponibles)
+                    {
+                        <option value="@anio">@anio</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-6">
+                @if (Cargando)
+                {
+                    <p style="color: #ff69b4;">Cargando datos...</p>
+                }
+            </div>
+        </div>
+
+        @if (Reporte.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" style="border-radius: 10px; overflow: hidden; border: 1px solid #ffb6c1;">
+                    <thead style="background-color: #ff69b4; color: white;">
+                        <tr>
+                            <th>Mes</th>
+                            <th class="text-center">Facturas Emitidas</th>
+                            <th class="text-end">Total Facturado (MXN)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mes in Reporte)
+                        {
+                            <tr style="background-color: @(mes.MesNumero % 2 != 0 ? "white" : "#fce4ec");">
+                                <td>@mes.NombreMes.ToUpper()</td>
+                                <td class="text-center">@mes.CantidadFacturas</td>
+                                <td class="text-end">
+                                    <strong>$@mes.TotalMes.ToString("N2")</strong>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot style="background-color: #8b0000; color: white; font-size: 1.2rem; font-weight: 700;">
+                        <tr>
+                            <td>TOTAL ANUAL</td>
+                            <td class="text-center">@Reporte.Sum(r => r.CantidadFacturas)</td>
+                            <td class="text-end">$@Reporte.Sum(r => r.TotalMes).ToString("N2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+        else if (!Cargando)
+        {
+            <div class="alert alert-warning" style="background-color: #fff0f5; color: #8b0000; border-color: #ffb6c1;">
+                No se encontraron facturas registradas para el año @AnioSeleccionado.
+            </div>
+        }
+
+        <p class="mt-4">
+            <a href="/Vista" class="ts-button" style="background-color: #b5e7a9; color: #38761d; border-color: #70ad47;">
+                ⬅️ Volver a Facturas
+            </a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private List<int> AñosDisponibles = Enumerable.Range(DateTime.Now.Year - 5, 6).OrderByDescending(a => a).ToList();
+    private int AnioSeleccionado { get; set; } = DateTime.Now.Year;
+    private IEnumerable<Factura.ReporteMensual> Reporte = new List<Factura.ReporteMensual>();
+    private bool Cargando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var todasLasFacturas = await ServicioControlador.ObtenerTodasFacturasAsync();
+        if (todasLasFacturas.Any())
+        {
+            int maxAnio = todasLasFacturas.Max(f => f.FechaFactura.Year);
+            if (maxAnio > DateTime.Now.Year)
+            {
+                AñosDisponibles = Enumerable.Range(DateTime.Now.Year - 5, maxAnio - (DateTime.Now.Year - 5) + 1).OrderByDescending(a => a).ToList();
+            }
+            AnioSeleccionado = todasLasFacturas.Max(f => f.FechaFactura.Year);
+        }
+
+        await CargarReporte();
+    }
+
+    private async Task CargarReporte()
+    {
+        Cargando = true;
+        Reporte = await ServicioControlador.ObtenerReporteAnualAsync(AnioSeleccionado);
+        Cargando = false;
+
+        StateHasChanged();
+    }
+}
