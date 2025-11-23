@@ -1,0 +1,283 @@
+﻿@page "/dashboard"
+@using blazor.Components.Data
+@using blazor.Components.Servicios
+@using System.Globalization
+@inject ServicioDashboard DashboardService
+@inject NavigationManager NavManager
+
+<PageTitle>Dashboard de Ventas ✨</PageTitle>
+
+<div class="p-4 sm:p-6 ts-bg-soft min-h-screen">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold ts-title-highlight">
+            <span class="ts-pink">📊 Panel de Control</span> de Ventas
+        </h1>
+        <a href="/Vista"
+           class="ts-button-pink font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
+            Ir a Facturas
+        </a>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-10">
+            <p class="text-lg ts-pink">Cargando métricas... 🎶</p>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto mt-4"></div>
+        </div>
+    }
+    else if (!hasData)
+    {
+        <div class="bg-pink-100 border-l-4 border-ts-pink text-gray-700 p-4 rounded-lg shadow-md" role="alert">
+            <p class="font-bold">Sin Datos 💔</p>
+            <p>Aún no hay facturas registradas. Por favor, agregue algunas facturas para ver el dashboard.</p>
+        </div>
+    }
+    else
+    {
+        <h2 class="text-xl font-semibold ts-title-highlight mb-4 border-b-2 border-pink-200 pb-2">Resumen Financiero</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <MetricCard Title="Ingresos Totales" 
+                        Value="@totalIngresos.ToString("C", new CultureInfo("es-MX"))" 
+                        Description="Total histórico acumulado" 
+                        Color="bg-indigo-600" />
+            
+            <MetricCard Title="Total de Facturas" 
+                        Value="@totalFacturas.ToString("N0")" 
+                        Description="Documentos emitidos" 
+                        Color="bg-green-600" />
+            
+            <MetricCard Title="Ticket Promedio" 
+                        Value="@ticketPromedio.ToString("C", new CultureInfo("es-MX"))" 
+                        Description="Venta promedio por documento" 
+                        Color="bg-yellow-600" />
+
+            <MetricCard Title="Clientes Únicos" 
+                        Value="@totalClientesUnicos.ToString("N0")" 
+                        Description="Clientes diferentes atendidos" 
+                        Color="bg-red-600" />
+        </div>
+
+        <h2 class="text-xl font-semibold ts-title-highlight mb-4 border-b-2 border-pink-200 pb-2">Tendencias y Crecimiento</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <div class="bg-white p-6 rounded-xl ts-card-shadow border border-ts-light-pink-bg lg:col-span-2">
+                <h3 class="text-lg font-bold ts-title-highlight mb-4">Mes con Mayor Ingreso ✨</h3>
+                @if (picoIngresos != null)
+                {
+                    <p class="text-4xl font-extrabold ts-pink">@picoIngresos.TotalMes.ToString("C", new CultureInfo("es-MX"))</p>
+                    <p class="text-lg text-gray-500 mt-1">
+                        Ocurrido en: <span class="font-semibold ts-pink">
+                            @(CultureInfo.GetCultureInfo("es-MX").TextInfo.ToTitleCase(picoIngresos.NombreMes)) @picoIngresos.Year
+                        </span>
+                    </p>
+                }
+            </div>
+
+            <div class="bg-white p-6 rounded-xl ts-card-shadow border border-blue-100">
+                <h3 class="text-lg font-bold ts-title-highlight mb-4">Crecimiento Anual (vs @(DateTime.Now.Year - 1)) 🚀</h3>
+                
+                @if (crecimientoAnual >= 1000m) 
+                {
+                    <p class="text-4xl font-extrabold text-indigo-600">
+                        +Nuevo Histórico 🎉
+                    </p>
+                }
+                else
+                {
+                    <p class="text-4xl font-extrabold @(crecimientoAnual >= 0 ? "text-green-600" : "text-red-600")">
+                        @crecimientoAnual.ToString("P1")
+                    </p>
+                }
+
+                <p class="text-4xl font-extrabold @(crecimientoAnual >= 0 ? "text-green-600" : "text-red-600")">
+                    @crecimientoAnual.ToString("P1")
+                </p>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Comparación de Ingresos Totales (Año Actual vs Año Anterior).
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <div class="bg-white p-6 rounded-xl ts-card-shadow border border-green-100">
+                <h3 class="text-xl font-bold ts-title-highlight mb-4">Top 3 Clientes por Ingreso 👑</h3>
+                <ul class="space-y-3">
+                    @foreach (var cliente in topClientes)
+                    {
+                        <li class="flex justify-between items-center p-3 ts-light-pink-bg border-b last:border-b-0 rounded-md hover:bg-pink-100 transition duration-150">
+                            <span class="font-medium text-gray-700 truncate">@cliente.Cliente</span>
+                            <span class="text-lg font-semibold ts-pink">@cliente.TotalComprado.ToString("C", new CultureInfo("es-MX"))</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl ts-card-shadow border border-purple-100">
+                <h3 class="text-xl font-bold ts-title-highlight mb-4">Top Artículos 🛍️</h3>
+                <div class="space-y-4">
+                    @if (articuloMasVendido != null)
+                    {
+                        <div class="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <p class="font-semibold text-purple-700">Artículo Más Vendido (Unidades)</p>
+                            <p class="text-lg mt-1">
+                                <span class="font-bold">@articuloMasVendido.Descripcion</span> 
+                                (@articuloMasVendido.TotalUnidades.ToString("N0") unidades)
+                            </p>
+                        </div>
+                    }
+
+                    @if (articuloMasRentable != null)
+                    {
+                        <div class="p-3 ts-light-pink-bg rounded-lg border border-pink-300">
+                            <p class="font-semibold ts-pink">Artículo Más Rentable (Ingreso)</p>
+                            <p class="text-lg mt-1">
+                                <span class="font-bold">@articuloMasRentable.Descripcion</span> 
+                                (@articuloMasRentable.TotalIngreso.ToString("C", new CultureInfo("es-MX")))
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-semibold ts-title-highlight mt-8 mb-4 border-b-2 border-pink-200 pb-2">Distribución de Ventas por Día 📈</h2>
+        <div class="bg-white p-6 rounded-xl ts-card-shadow border border-orange-100">
+            <div class="grid grid-cols-7 gap-1 h-64 items-end pt-4">
+                @if (ventasPorDia != null)
+                {
+                    var maxVenta = ventasPorDia.Max(d => d.TotalVendido);
+                    foreach (var dia in ventasPorDia)
+                    {
+                        double heightPercent = maxVenta > 0 ? (double)(dia.TotalVendido / maxVenta * 100) : 0;
+                        string barHeight = $"{heightPercent}%";
+                        string diaTraducido = TraducirDia(dia.Dia);
+
+                        <div class="flex flex-col items-center justify-end h-full">
+                            <div title="@dia.TotalVendido.ToString("C", new CultureInfo("es-MX"))"
+                                class="w-full bg-ts-pink rounded-t-md transition-all duration-500 hover:bg-pink-700 relative" 
+                                style="height: @barHeight;">
+                                <span class="absolute top-[-25px] text-xs font-semibold text-gray-700">
+                                    @dia.TotalVendido.ToString("N0")
+                                </span>
+                            </div>
+                            <span class="text-xs font-medium mt-1 text-gray-600">@diaTraducido</span>
+                        </div>
+                    }
+                }
+            </div>
+            <p class="text-sm text-gray-500 mt-4 text-center">Monto total de ventas por día de la semana (histórico).</p>
+        </div>
+    }
+</div>
+
+@code {
+    public class MetricCardModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Color { get; set; } = "bg-gray-500";
+    }
+
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public string Color { get; set; } = "bg-indigo-600";
+    
+    private RenderFragment MetricCard => (__builder) =>
+       {
+           <div class="@($"bg-white p-5 rounded-xl ts-card-shadow transform hover:scale-[1.02] transition-all duration-300 border-b-4 border-l-2 {Color.Replace("bg-", "border-")}")">
+               <p class="text-sm font-medium text-gray-500 truncate">@Title</p>
+               <div class="flex items-end justify-between">
+                   <p class="text-3xl font-extrabold ts-title-highlight mt-1">@Value</p>
+                   <div class="@($"text-xs font-semibold text-white px-2 py-0.5 rounded-full {Color}")">
+                       @Description
+                   </div>
+               </div>
+           </div>
+       };
+}
+
+
+@code {
+    private bool isLoading = true;
+    private bool hasData = false;
+    private decimal totalIngresos = 0m;
+    private int totalFacturas = 0;
+    private int totalClientesUnicos = 0;
+    private decimal ticketPromedio = 0m;
+    private MétricaPico? picoIngresos;
+    private MétricaArticulo? articuloMasVendido;
+    private MétricaArticulo? articuloMasRentable;
+    private List<MétricaCliente> topClientes = new List<MétricaCliente>();
+    private List<MétricaDia> ventasPorDia = new List<MétricaDia>();
+    private decimal crecimientoAnual = 0m;
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarMetricasAsync();
+    }
+
+    private async Task CargarMetricasAsync()
+    {
+        isLoading = true;
+        try
+        {
+            totalFacturas = await DashboardService.ObtenerTotalFacturasAsync();
+
+            if (totalFacturas > 0)
+            {
+                hasData = true;
+
+                totalIngresos = await DashboardService.ObtenerIngresosTotalesAsync();
+
+                picoIngresos = await DashboardService.ObtenerPicoIngresosAsync();
+
+                articuloMasVendido = await DashboardService.ObtenerArticuloMasVendidoPorCantidadAsync();
+
+                ticketPromedio = await DashboardService.ObtenerTicketPromedioAsync();
+
+                topClientes = (await DashboardService.ObtenerTopClientesAsync(3)).ToList();
+
+                totalClientesUnicos = await DashboardService.ObtenerTotalClientesUnicosAsync();
+
+                articuloMasRentable = await DashboardService.ObtenerArticuloMasRentableAsync();
+
+                ventasPorDia = (await DashboardService.ObtenerVentasPorDiaDeLaSemanaAsync()).ToList();
+                crecimientoAnual = await DashboardService.ObtenerCrecimientoAnualAsync();
+            }
+            else
+            {
+                hasData = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar métricas: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToHome()
+    {
+        NavManager.NavigateTo("/");
+    }
+    private string TraducirDia(string dia)
+    {
+        return dia switch
+        {
+            "Monday" => "Lunes",
+            "Tuesday" => "Martes",
+            "Wednesday" => "Miércoles",
+            "Thursday" => "Jueves",
+            "Friday" => "Viernes",
+            "Saturday" => "Sábado",
+            "Sunday" => "Domingo",
+            _ => dia,
+        };
+    }
+}
