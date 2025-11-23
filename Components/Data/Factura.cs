@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Collections.Generic; 
-using System; 
-
+using System;
 namespace blazor.Components.Data
 {
     public class Factura
@@ -16,7 +15,6 @@ namespace blazor.Components.Data
         public string NombreCliente { get; set; } = string.Empty;
 
         public List<ArticuloFactura> Articulos { get; set; } = new List<ArticuloFactura>();
-
         public decimal Total => Articulos.Sum(a => a.Subtotal);
 
         public class ArticuloFactura
@@ -32,7 +30,6 @@ namespace blazor.Components.Data
 
             [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor a cero.")]
             public decimal Precio { get; set; }
-
             public decimal Subtotal => Precio * Cantidad;
         }
 
@@ -43,5 +40,28 @@ namespace blazor.Components.Data
             public int CantidadFacturas { get; set; }
             public decimal TotalMes { get; set; }
         }
+    }
+    public class MétricaCliente
+    {
+        public string Cliente { get; set; } = string.Empty;
+        public decimal TotalComprado { get; set; }
+    }
+    public class MétricaArticulo
+    {
+        public string Descripcion { get; set; } = string.Empty;
+        public decimal TotalUnidades { get; set; }
+        public decimal TotalIngreso { get; set; }
+    }
+    public class MétricaPico
+    {
+        public int Year { get; set; }
+        public int Month { get; set; }
+        public string NombreMes { get; set; } = string.Empty;
+        public decimal TotalMes { get; set; }
+    }
+    public class MétricaDia
+    {
+        public string Dia { get; set; } = string.Empty; 
+        public decimal TotalVendido { get; set; }
     }
 }
