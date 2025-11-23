@@ -105,3 +105,35 @@ h1:focus {
         box-shadow: 0 8px 20px rgba(255, 105, 180, 0.6);
         transform: translateY(-2px);
     }
+.ts-bg-soft {
+    /* Fondo muy claro, similar al blanco o un gris muy suave */
+    background-color: #f7f3f8;
+}
+
+.ts-title-highlight {
+    color: #8b0000; /* Color oscuro para contraste, similar a borgoña o cereza */
+}
+
+.ts-pink {
+    color: #ff69b4; /* Rosa intenso */
+}
+
+.ts-light-pink-bg {
+    background-color: #ffd6e0; /* Rosa claro para tarjetas o elementos */
+    border-color: #ffb6c1 !important;
+}
+
+.ts-button-pink {
+    background-color: #ff69b4; /* Botón rosa brillante */
+    color: white;
+    border: 2px solid #d64d99;
+    box-shadow: 0 4px 6px rgba(255, 105, 180, 0.4); /* Sombra rosada */
+}
+
+    .ts-button-pink:hover {
+        background-color: #d64d99;
+    }
+
+.ts-card-shadow {
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.6); /* Sombra más pronunciada y rosada */
+}
