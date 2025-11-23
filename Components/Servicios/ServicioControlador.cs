@@ -128,8 +128,6 @@ namespace blazor.Components.Servicios
         }
         public async Task<IEnumerable<ReporteMensual>> ObtenerReporteAnualAsync(int anio)
         {
-            await CargarFacturasAsync();
-
             return await _servicioFacturas.ObtenerReporteAnualAsync(anio);
         }
     }
