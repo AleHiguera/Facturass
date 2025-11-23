@@ -113,10 +113,8 @@
     public Factura FacturaNueva { get; set; } = new Factura
     {
         FechaFactura = DateTime.Now,
-        Articulos = new List<Factura.ArticuloFactura>
-        {
-            new Factura.ArticuloFactura()
-        }
+        Articulos = new List<Factura.ArticuloFactura>()
+
     };
 
     protected override void OnInitialized()
