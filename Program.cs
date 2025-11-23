@@ -25,7 +25,7 @@ builder.Services.AddTransient<ServicioFacturas>(sp =>
 });
 
 builder.Services.AddTransient<ServicioControlador>();
-
+builder.Services.AddTransient<ServicioDashboard>();
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment())
