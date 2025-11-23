@@ -45,7 +45,6 @@ namespace blazor.Components.Servicios
 
         public async Task CargarFacturasAsync()
         {
-            // Este método siempre va a la DB y reemplaza la caché
             _facturasEnMemoria = (await _servicioFacturas.ObtenerTodasAsync()).ToList();
         }
 

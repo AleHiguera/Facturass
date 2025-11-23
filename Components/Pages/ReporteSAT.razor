@@ -20,14 +20,13 @@
                 <label for="selectAnio" class="form-label" style="color: #8b0000; font-weight: 600;">Seleccionar Año</label>
             </div>
             <div class="col-md-3">
-                <InputSelect @bind-Value="AnioSeleccionado" 
-                             class="form-select" 
-                             id="selectAnio" 
-                             @onchange="CargarReporte" 
+                <InputSelect @bind-Value="AnioSeleccionadoString"
+                             class="form-select"
+                             id="selectAnio"
                              style="border-color: #ffb6c1;">
                     @foreach (var anio in AñosDisponibles)
                     {
-                        <option value="@anio">@anio</option>
+                            <option value="@anio">@anio</option>
                     }
                 </InputSelect>
             </div>
@@ -75,7 +74,7 @@
         else if (!Cargando)
         {
             <div class="alert alert-warning" style="background-color: #fff0f5; color: #8b0000; border-color: #ffb6c1;">
-                No se encontraron facturas registradas para el año @AnioSeleccionado.
+                No se encontraron facturas registradas para el año @_anioSeleccionado.
             </div>
         }
 
@@ -89,9 +88,28 @@
 
 @code {
     private List<int> AñosDisponibles = Enumerable.Range(DateTime.Now.Year - 5, 6).OrderByDescending(a => a).ToList();
-    private int AnioSeleccionado { get; set; } = DateTime.Now.Year;
+
+    private int _anioSeleccionado = DateTime.Now.Year;
+
     private IEnumerable<Factura.ReporteMensual> Reporte = new List<Factura.ReporteMensual>();
     private bool Cargando = true;
+
+    private string AnioSeleccionadoString
+    {
+        get => _anioSeleccionado.ToString();
+        set
+        {
+            if (int.TryParse(value, out int nuevoAnio))
+            {
+                if (_anioSeleccionado != nuevoAnio)
+                {
+                    _anioSeleccionado = nuevoAnio;
+
+                    CargarReporte().FireAndForget();
+                }
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,7 +121,7 @@
             {
                 AñosDisponibles = Enumerable.Range(DateTime.Now.Year - 5, maxAnio - (DateTime.Now.Year - 5) + 1).OrderByDescending(a => a).ToList();
             }
-            AnioSeleccionado = todasLasFacturas.Max(f => f.FechaFactura.Year);
+            _anioSeleccionado = todasLasFacturas.Max(f => f.FechaFactura.Year);
         }
 
         await CargarReporte();
@@ -112,9 +130,9 @@
     private async Task CargarReporte()
     {
         Cargando = true;
-        Reporte = await ServicioControlador.ObtenerReporteAnualAsync(AnioSeleccionado);
+        Reporte = await ServicioControlador.ObtenerReporteAnualAsync(_anioSeleccionado);
         Cargando = false;
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 }
