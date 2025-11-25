@@ -6,32 +6,36 @@
 @inject NavigationManager Navigation
 @inject Microsoft.JSInterop.IJSRuntime JSRuntime
 
-<div class="taylor-swift-bg">
-    <div class="taylor-swift-card" style="max-width: 1100px; padding: 30px; margin: 30px auto;">
+<div class="facturapro-bg">
+    <div class="facturapro-card">
 
-        <h1 class="ts-title" style="font-size: 2.5rem;">
-            <span class="ts-pink">📄 Facturas Registradas ✨</span>
-        </h1>
+        <div class="d-flex justify-content-start align-items-center mb-3">
+            <h1 class="fp-title" style="margin-bottom: 0;">
+                <span class="fp-primary-color">🧾 FacturaPro</span> - Facturas Registradas
+            </h1>
+        </div>
 
         <hr />
 
-        <div class="row mb-4 align-items-center">
-            <div class="col-md-6">
+        <div class="row mb-3">
+            <div class="col-12 col-md-7">
                 <div class="input-group">
                     <input @bind="ServicioControlador.FiltroNombreCliente"
                            @bind:event="oninput"
                            placeholder="Filtrar por Nombre de Cliente..."
                            class="form-control" />
 
-                    <button class="btn ts-button" @onclick="BorrarFiltroNombre" style="font-size: 1rem; padding: 0.375rem 0.75rem;">
-                        ❌ Borrar
+                    <button class="btn fp-text-icon-button" @onclick="BorrarFiltroNombre">
+                        ❌
                     </button>
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-6 d-flex justify-content-end">
+        <div class="row mb-4">
+            <div class="col-12 col-md-5 d-flex justify-content-end ms-auto">
                 <div class="input-group" style="max-width: 300px;">
-                    <label class="input-group-text" style="background-color: #ffb6c1; color: #8b0000; border-color: #ff69b4;">
+                    <label class="input-group-text input-group-text-fp">
                         Ordenar:
                     </label>
                     <select @bind="OrdenacionAuxiliar"
@@ -46,21 +50,12 @@
                 </div>
             </div>
         </div>
-
-        <div class="d-flex justify-content-between mb-4">
-            <button class="ts-button" @onclick="CrearNuevaFactura">
-                ➕ Crear Nueva Factura
-            </button>
-
-            <button class="ts-button" @onclick="IrAReporteSAT" style="background-color: #b5e7a9; color: #38761d; border-color: #70ad47;">
-                📊 Reporte SAT
-            </button>
-        </div>
+        <hr />
 
         @if (FacturasFiltradas.Any())
         {
-            <table class="table table-hover table-striped" style="border-radius: 10px; overflow: hidden; border: 1px solid #ffb6c1;">
-                <thead style="background-color: #ff69b4; color: white;">
+            <table class="table table-hover table-striped table-facturapro">
+                <thead>
                     <tr>
                         <th>ID</th>
                         <th>Fecha</th>
@@ -79,11 +74,12 @@
                             <td @onclick="() => VerDetalle(factura.Id)">@factura.NombreCliente</td>
                             <td @onclick="() => VerDetalle(factura.Id)" class="text-end">@factura.Articulos.Count</td>
                             <td @onclick="() => VerDetalle(factura.Id)" class="text-end">$@factura.Total.ToString("N2")</td>
-                            <td class="d-flex justify-content-center gap-1">
-                                <button class="btn btn-sm btn-info" @onclick="() => EditarFactura(factura.Id)" style="background-color: #ffd6e0; border-color: #ffb6c1; color: #333;">
+
+                            <td class="d-flex justify-content-center gap-2">
+                                <button class="btn btn-sm fp-action-edit" @onclick="() => EditarFactura(factura.Id)">
                                     ✏️
                                 </button>
-                                <button class="btn btn-sm btn-danger" @onclick="() => ConfirmarEliminar(factura.Id)" style="background-color: #ff69b4; border-color: #d64d99; color: white;">
+                                <button class="btn btn-sm fp-action-delete" @onclick="() => ConfirmarEliminar(factura.Id)">
                                     🗑️
                                 </button>
                             </td>
@@ -94,17 +90,30 @@
         }
         else
         {
-            <div class="alert alert-warning" style="background-color: #fff0f5; color: #ff69b4; border-color: #ffb6c1;">
+            <div class="alert alert-warning" style="background-color: var(--fp-surface); color: var(--fp-primary); border-color: var(--fp-primary);">
                 No se encontraron facturas que coincidan con el filtro.
             </div>
         }
-
-        <p class="mt-4">
-            <a href="/" class="ts-button" style="font-size: 1rem; padding: 10px 20px;">
-                🏠 Regresar al Inicio
-            </a>
-        </p>
     </div>
+</div>
+
+<div class="fab-container">
+
+    <button class="fp-fab-secondary" @onclick="IrADashboard">
+        📋
+    </button>
+
+    <button class="fp-fab-secondary" @onclick="IrAReporteSAT">
+        📊
+    </button>
+
+    <button class="fp-fab-secondary" @onclick="RegresarAlInicio">
+        🏠
+    </button>
+
+    <button class="fp-efab" @onclick="CrearNuevaFactura">
+        <i class="oi oi-plus"></i> Crear Nueva Factura
+    </button>
 </div>
 
 @code {
@@ -150,6 +159,11 @@
         Navigation.NavigateTo($"/detalle-factura/{facturaId}");
     }
 
+    private void RegresarAlInicio()
+    {
+        Navigation.NavigateTo("/");
+    }
+
     private void CrearNuevaFactura()
     {
         Navigation.NavigateTo("/nueva-factura");
@@ -158,6 +172,11 @@
     private void IrAReporteSAT()
     {
         Navigation.NavigateTo("/reporte-sat");
+    }
+
+    private void IrADashboard()
+    {
+        Navigation.NavigateTo("/dashboard");
     }
 
     private void EditarFactura(int facturaId)

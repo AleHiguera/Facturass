@@ -36,104 +36,247 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
-/* 1. Fondo de la página */
-.taylor-swift-bg {
-    min-height: 90vh; /* Asegura que cubra la mayor parte de la pantalla */
+:root {
+    --fp-primary: #673AB7; /* Morado Profundo */
+    --fp-secondary: #9C27B0; /* Púrpura Vibrante */
+    --fp-surface: #F5F4FA; /* Gris Púrpura Muy Claro */
+    --fp-background: #EDE7F6; /* Lavanda Pálido */
+    --fp-error: #D32F2F; /* Rojo Error M3 */
+}
+
+
+/* 1. Fondo de la página (M3 Background) */
+.facturapro-bg {
+    min-height: 90vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #fce4ec; /* Rosa muy claro/pastel */
-    background-image: radial-gradient(#ffffff, transparent 50%), radial-gradient(#ffd6e0, transparent 80%);
-    background-position: top left, bottom right;
-    background-repeat: no-repeat;
-    background-size: 50% 50%, 40% 40%;
+    background-color: var(--fp-background);
 }
 
-/* 2. Tarjeta contenedora del contenido */
-.taylor-swift-card {
-    background-color: #ffffff; /* Fondo blanco para contraste */
-    padding: 40px 60px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3); /* Sombra rosa sutil */
-    text-align: center;
-    max-width: 600px;
-    width: 90%;
+/* 2. Tarjeta contenedora del contenido (M3 Surface & Elevation) */
+.facturapro-card {
+    background-color: var(--fp-surface);
+    padding: 30px;
+    border-radius: 16px;
+    /* Sombra M3 sutil */
+    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.2);
+    max-width: 1100px;
+    width: 95%;
     margin: 20px auto;
 }
 
-/* 3. Estilo del Título H1 */
-.ts-title {
-    font-family: 'Georgia', serif; /* Fuente más clásica y elegante */
-    font-size: 3.5rem;
+/* 3. Título H1 */
+.fp-title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    color: #333; /* Color oscuro para legibilidad */
+    color: #333;
+    text-align: left;
 }
 
-/* Color destacado para el título */
-.ts-pink {
-    color: #ff69b4; /* Hot Pink / Rosa chicle */
-    text-shadow: 1px 1px 3px rgba(255, 105, 180, 0.4); /* Pequeño brillo */
+/* Color principal para el énfasis del título */
+.fp-primary-color {
+    color: var(--fp-primary);
 }
 
-/* 4. Subtítulo P */
-.ts-subtitle {
-    font-size: 1.2rem;
-    color: #555;
-    margin-bottom: 2rem;
-    font-family: 'Segoe Script', cursive; /* O cualquier fuente cursiva elegante que tengas */
-}
-
-/* 5. Estilo del Botón de Navegación */
-.ts-button {
+/* 4. Estilo de Botones (M3 Filled Button) */
+.fp-button-primary {
     display: inline-block;
-    padding: 15px 30px;
-    font-size: 1.2rem;
-    font-weight: 600;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 500;
     text-decoration: none;
-    border-radius: 50px; /* Bordes redondeados */
-    background-color: #ffb6c1; /* Rosa claro/pastel */
-    color: #8b0000; /* Color vino/oscuro para el texto */
-    border: 2px solid #ff69b4; /* Borde rosa más fuerte */
-    transition: all 0.3s ease;
-    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4); /* Sombra tipo glow */
+    border-radius: 20px; /* Chip/Pill shape for M3 Filled Button */
+    background-color: var(--fp-primary);
+    color: white;
+    border: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0 8px; /* Espaciado entre botones M3 (8px) */
 }
 
-    .ts-button:hover {
-        background-color: #ff85a2; /* Rosa un poco más oscuro al pasar el mouse */
-        color: #ffffff; /* Texto blanco al pasar el mouse */
-        box-shadow: 0 8px 20px rgba(255, 105, 180, 0.6);
+    .fp-button-primary:hover {
+        background-color: #512DA8; /* Tono más oscuro al pasar el mouse */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+    }
+
+/* Botón secundario/de acento (ej. Reporte SAT) */
+.fp-button-secondary {
+    background-color: var(--fp-secondary);
+    color: white;
+}
+
+    .fp-button-secondary:hover {
+        background-color: #8E24AA;
+    }
+
+/* Botón de acción pequeño de la tabla (Editar - M3 Tonal) */
+.fp-action-edit {
+    background-color: #E1BEE7; /* Tonal Purple */
+    border-color: #E1BEE7;
+    color: var(--fp-primary);
+    border-radius: 50%; /* Icon Button shape */
+    padding: 6px 8px; /* Ajuste para que el icono se vea bien */
+}
+
+/* Botón de acción pequeño de la tabla (Eliminar - M3 Error) */
+.fp-action-delete {
+    background-color: var(--fp-error);
+    border-color: var(--fp-error);
+    color: white;
+    border-radius: 50%; /* Icon Button shape */
+    padding: 6px 8px;
+}
+
+/* 5. Estilos de la Tabla (M3 Data Table) */
+.table-facturapro {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--fp-primary);
+}
+
+    .table-facturapro thead {
+        /* Cabecera con color Primary M3 */
+        background-color: var(--fp-primary);
+        color: white;
+    }
+
+    .table-facturapro th, .table-facturapro td {
+        padding: 12px 16px; /* Aumentar el padding para mejor espaciado (M3 Density) */
+    }
+
+    .table-facturapro tbody tr:hover {
+        background-color: rgba(103, 58, 183, 0.1); /* Hover suave */
+    }
+
+/* 6. Estilo de Filtros y Selectores (M3 Outline components) */
+.form-select, .form-control {
+    border-radius: 8px;
+    border: 1px solid #BDBDBD; /* Gris más neutral para Outline */
+}
+
+.input-group-text-fp {
+    background-color: var(--fp-secondary);
+    color: white;
+    border-color: var(--fp-secondary);
+    font-weight: 500;
+}
+.fab-container {
+    position: fixed; /* Lo fija en la pantalla */
+    bottom: 32px;
+    right: 32px;
+    z-index: 1000;
+}
+
+/* Estilo del Extended Floating Action Button (EFAB) */
+.fp-efab {
+    padding: 16px 24px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 16px; /* Bordes suaves */
+    background-color: var(--fp-primary); /* Morado Principal */
+    color: white;
+    border: none;
+    /* Sombra más pronunciada para darle la sensación de flotar (Elevation 3) */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
+    transition: all 0.3s ease;
+}
+
+    .fp-efab:hover {
+        background-color: #512DA8;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         transform: translateY(-2px);
     }
-.ts-bg-soft {
-    /* Fondo muy claro, similar al blanco o un gris muy suave */
-    background-color: #f7f3f8;
-}
 
-.ts-title-highlight {
-    color: #8b0000; /* Color oscuro para contraste, similar a borgoña o cereza */
-}
-
-.ts-pink {
-    color: #ff69b4; /* Rosa intenso */
-}
-
-.ts-light-pink-bg {
-    background-color: #ffd6e0; /* Rosa claro para tarjetas o elementos */
-    border-color: #ffb6c1 !important;
-}
-
-.ts-button-pink {
-    background-color: #ff69b4; /* Botón rosa brillante */
-    color: white;
-    border: 2px solid #d64d99;
-    box-shadow: 0 4px 6px rgba(255, 105, 180, 0.4); /* Sombra rosada */
-}
-
-    .ts-button-pink:hover {
-        background-color: #d64d99;
+    .fp-efab i {
+        margin-right: 8px; /* Espaciado M3 entre ícono y texto */
+        font-size: 1.2rem;
     }
 
-.ts-card-shadow {
-    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.6); /* Sombra más pronunciada y rosada */
+/* Elevated Button para acciones secundarias */
+.fp-button-elevated {
+    padding: 8px 16px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    background-color: var(--fp-surface); /* Tono de superficie para Elevated */
+    color: var(--fp-primary);
+    border: 1px solid var(--fp-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
 }
+
+    .fp-button-elevated:hover {
+        background-color: #E1BEE7; /* Tonal hover */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    }
+fab-container {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 1000;
+    display: flex; /* Añadido para alinear los FABs */
+    flex-direction: column; /* Apilarlos verticalmente */
+    align-items: flex-end; /* Asegurar que se alineen a la derecha */
+    gap: 16px; /* Espaciado entre FABs (M3 spacing token) */
+}
+
+/* Estilo del Extended Floating Action Button (EFAB) - El mismo para Crear Nueva Factura */
+.fp-efab {
+    padding: 16px 24px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 16px;
+    background-color: var(--fp-primary);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
+    transition: all 0.3s ease;
+}
+
+    .fp-efab:hover {
+        background-color: #512DA8;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+/* Estilo del Small/Regular Floating Action Button (FAB) - Para acciones secundarias flotantes */
+.fp-fab-secondary {
+    width: 56px; /* Tamaño estándar de un FAB M3 (56px) */
+    height: 56px;
+    border-radius: 50%; /* Redondo */
+    background-color: var(--fp-secondary); /* Color secundario M3 */
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem; /* Tamaño del ícono */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+    .fp-fab-secondary:hover {
+        background-color: #8E24AA;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    }
+
+/* Rediseño del botón Borrar dentro del filtro: Icon Button discreto */
+.fp-text-icon-button {
+    background: transparent;
+    border: none;
+    color: var(--fp-error); /* Usamos el color de Error o Primary para el ícono */
+    font-size: 1.5rem; /* Ícono grande para el dedo */
+    padding: 0 8px; /* Reducimos el padding */
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+    .fp-text-icon-button:hover {
+        color: #FF0000; /* Rojo más intenso al pasar el mouse */
+    }
