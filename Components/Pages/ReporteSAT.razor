@@ -5,85 +5,98 @@
 @inject blazor.Components.Servicios.ServicioControlador ServicioControlador
 @inject NavigationManager Navigation
 
-<div class="taylor-swift-bg">
-    <div class="taylor-swift-card" style="max-width: 1000px; padding: 30px; margin: 30px auto;">
+<PageTitle>Reporte SAT Anual</PageTitle>
 
-        <h3 class="ts-title" style="font-size: 2.5rem; margin-bottom: 0;">
-            <span class="ts-pink">📊 Reporte SAT Anual ✨</span>
-        </h3>
-        <p class="ts-subtitle">Selecciona el año para generar el resumen mensual de facturas.</p>
+<div class="facturapro-bg min-h-screen p-4 sm:p-8 flex justify-center">
+    <div class="fp-page-container w-full max-w-4xl p-6 md:p-8">
 
-        <hr style="border-color: #ffb6c1;" />
+        <h1 class="text-4xl font-extrabold mb-2" style="color: var(--fp-primary);">
+            <i class="oi oi-bar-chart" style="font-size: 1.5rem; margin-right: 10px; color: var(--fp-secondary);"></i>
+            <span class="fp-primary-color">Reporte SAT Anual</span>
+        </h1>
+        <p class="text-lg mb-4" style="color: var(--fp-on-surface-variant);">
+            Selecciona el año para generar el resumen mensual de facturas.
+        </p>
 
-        <div class="row mb-4 align-items-center">
-            <div class="col-md-3">
-                <label for="selectAnio" class="form-label" style="color: #8b0000; font-weight: 600;">Seleccionar Año</label>
-            </div>
-            <div class="col-md-3">
-                <InputSelect @bind-Value="AnioSeleccionadoString"
-                             class="form-select"
-                             id="selectAnio"
-                             style="border-color: #ffb6c1;">
-                    @foreach (var anio in AñosDisponibles)
-                    {
+        <hr style="border-top: 2px solid var(--fp-primary-border);" class="mb-6" />
+
+        <div class="bg-white p-6 rounded-xl facturapro-card-shadow border" style="border-color: var(--fp-primary-border);">
+
+            <div class="flex flex-col md:flex-row mb-6 items-start md:items-center gap-4">
+                <div class="w-full md:w-1/3">
+                    <label for="selectAnio" class="form-label font-semibold block mb-1" style="color: var(--fp-on-surface);">Seleccionar Año</label>
+                    <InputSelect @bind-Value="AnioSeleccionadoString"
+                                 class="fp-input"
+                                 id="selectAnio">
+                        @foreach (var anio in AñosDisponibles)
+                        {
                             <option value="@anio">@anio</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="md:pt-6">
+                    @if (Cargando)
+                    {
+                        <p class="font-semibold" style="color: var(--fp-secondary);">Cargando datos...</p>
                     }
-                </InputSelect>
+                </div>
             </div>
-            <div class="col-md-6">
-                @if (Cargando)
-                {
-                    <p style="color: #ff69b4;">Cargando datos...</p>
-                }
-            </div>
+
+            @if (Reporte.Any())
+            {
+                <h5 class="text-xl font-semibold mb-3" style="color: var(--fp-primary);">Resumen del Año @AnioSeleccionadoString</h5>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" style="border: 1px solid var(--fp-primary-border);">
+                        <thead style="background-color: var(--fp-primary); color: white;">
+                            <tr class="text-sm uppercase font-semibold tracking-wider">
+                                <th class="p-3 border-b-2" style="border-bottom-color: var(--fp-secondary);">Mes</th>
+                                <th class="p-3 border-b-2 text-center" style="border-bottom-color: var(--fp-secondary);">Facturas Emitidas</th>
+                                <th class="p-3 border-b-2 text-end" style="border-bottom-color: var(--fp-secondary);">Total Facturado (@MonedaReporte)</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var mes in Reporte)
+                            {
+                                <tr class="hover:bg-gray-50 transition duration-150" style="background-color: @(mes.MesNumero % 2 != 0 ? "white" : "var(--fp-surface-alt)"); color: var(--fp-on-surface-variant);">
+                                    <td class="p-3 border-b font-semibold" style="border-color: var(--fp-primary-border);">@mes.NombreMes.ToUpper()</td>
+                                    <td class="p-3 border-b text-center" style="border-color: var(--fp-primary-border);">@mes.CantidadFacturas</td>
+                                    <td class="p-3 border-b text-end font-bold" style="border-color: var(--fp-primary-border); color: var(--fp-secondary);">
+                                        @mes.TotalMes.ToString("C2")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                        <tfoot style="background-color: var(--fp-tertiary); color: var(--fp-on-tertiary); font-size: 1.2rem; font-weight: 700;">
+                            <tr>
+                                <th class="p-3" style="color: black;">TOTAL ANUAL</th>
+                                <th class="p-3 text-center">@Reporte.Sum(r => r.CantidadFacturas)</th>
+                                <th class="p-3 text-end">@Reporte.Sum(r => r.TotalMes).ToString("C2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            
+            }
+            else if (!Cargando)
+            {
+                <div class="p-4 rounded-xl shadow-sm" style="background-color: var(--fp-secondary-soft); color: var(--fp-on-secondary-soft); border: 1px solid var(--fp-secondary);">
+                    <p class="font-bold">
+                        <i class="oi oi-warning"></i> No se encontraron facturas registradas para el año **@_anioSeleccionado**.
+                    </p>
+                </div>
+            }
         </div>
 
-        @if (Reporte.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped" style="border-radius: 10px; overflow: hidden; border: 1px solid #ffb6c1;">
-                    <thead style="background-color: #ff69b4; color: white;">
-                        <tr>
-                            <th>Mes</th>
-                            <th class="text-center">Facturas Emitidas</th>
-                            <th class="text-end">Total Facturado (MXN)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var mes in Reporte)
-                        {
-                            <tr style="background-color: @(mes.MesNumero % 2 != 0 ? "white" : "#fce4ec");">
-                                <td>@mes.NombreMes.ToUpper()</td>
-                                <td class="text-center">@mes.CantidadFacturas</td>
-                                <td class="text-end">
-                                    <strong>$@mes.TotalMes.ToString("N2")</strong>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot style="background-color: #8b0000; color: white; font-size: 1.2rem; font-weight: 700;">
-                        <tr>
-                            <td>TOTAL ANUAL</td>
-                            <td class="text-center">@Reporte.Sum(r => r.CantidadFacturas)</td>
-                            <td class="text-end">$@Reporte.Sum(r => r.TotalMes).ToString("N2")</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        }
-        else if (!Cargando)
-        {
-            <div class="alert alert-warning" style="background-color: #fff0f5; color: #8b0000; border-color: #ffb6c1;">
-                No se encontraron facturas registradas para el año @_anioSeleccionado.
-            </div>
-        }
-
-        <p class="mt-4">
-            <a href="/Vista" class="ts-button" style="background-color: #b5e7a9; color: #38761d; border-color: #70ad47;">
-                ⬅️ Volver a Facturas
-            </a>
-        </p>
     </div>
+</div>
+
+<div class="fab-container">
+    <button class="fp-efab" @onclick="VolverAFacturas">
+        <i class="oi oi-list"></i> Volver a Facturas
+    </button>
 </div>
 
 @code {
@@ -91,6 +104,7 @@
 
     private int _anioSeleccionado = DateTime.Now.Year;
 
+    private const string MonedaReporte = "MXN";
     private IEnumerable<Factura.ReporteMensual> Reporte = new List<Factura.ReporteMensual>();
     private bool Cargando = true;
 
@@ -104,8 +118,7 @@
                 if (_anioSeleccionado != nuevoAnio)
                 {
                     _anioSeleccionado = nuevoAnio;
-
-                    CargarReporte().FireAndForget();
+                    _ = CargarReporte();
                 }
             }
         }
@@ -113,15 +126,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+
         var todasLasFacturas = await ServicioControlador.ObtenerTodasFacturasAsync();
         if (todasLasFacturas.Any())
         {
+            int minAnio = todasLasFacturas.Min(f => f.FechaFactura.Year);
             int maxAnio = todasLasFacturas.Max(f => f.FechaFactura.Year);
-            if (maxAnio > DateTime.Now.Year)
-            {
-                AñosDisponibles = Enumerable.Range(DateTime.Now.Year - 5, maxAnio - (DateTime.Now.Year - 5) + 1).OrderByDescending(a => a).ToList();
-            }
-            _anioSeleccionado = todasLasFacturas.Max(f => f.FechaFactura.Year);
+            AñosDisponibles = Enumerable.Range(minAnio, maxAnio - minAnio + 1).OrderByDescending(a => a).ToList();
+
+            _anioSeleccionado = maxAnio;
         }
 
         await CargarReporte();
@@ -134,5 +147,10 @@
         Cargando = false;
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void VolverAFacturas()
+    {
+        Navigation.NavigateTo("/Vista");
     }
 }
