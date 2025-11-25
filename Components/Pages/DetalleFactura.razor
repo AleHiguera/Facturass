@@ -5,61 +5,68 @@
 @inject blazor.Components.Servicios.ServicioControlador ServicioControlador
 @inject NavigationManager Navigation
 
-<div class="taylor-swift-bg">
-    <div class="taylor-swift-card" style="max-width: 900px; padding: 30px; margin: 30px auto;">
+<PageTitle>Detalle Factura #@FacturaId</PageTitle>
 
-        <button class="ts-button mb-4" @onclick="VolverALista" style="font-size: 1rem; padding: 10px 20px; background-color: #fce4ec; color: #8b0000; border-color: #ffb6c1;">
-            &larr; Volver a Facturas
-        </button>
+<div class="facturapro-bg min-h-screen p-4 sm:p-8 flex justify-center">
+    <div class="fp-page-container w-full max-w-4xl p-6 md:p-8">
 
         @if (FacturaDetalle == null)
         {
-            <h3 class="ts-title" style="color: #e50000;">Factura no encontrada 💔</h3>
-            <div class="alert alert-danger" style="background-color: #fff0f5; color: #ff69b4; border-color: #ffb6c1;">
-                No se pudo cargar la factura con ID: **@FacturaId**.
+            <h3 class="text-3xl font-bold fp-primary-color mb-4">Factura no encontrada 💔</h3>
+            <div class="p-4 rounded-xl shadow-md" style="background-color: var(--fp-surface-alt); border: 2px solid var(--fp-primary);">
+                <p class="font-bold" style="color: var(--fp-on-surface);">No se pudo cargar la factura con ID: **@FacturaId**.</p>
             </div>
         }
         else
         {
-            <h3 class="ts-title" style="font-size: 2.5rem; margin-bottom: 0;">
-                <span class="ts-pink">Detalle de Factura #@FacturaDetalle.Id 📑💖</span>
-            </h3>
+            <h1 class="text-4xl font-extrabold mb-4" style="color: var(--fp-primary);">
+                Detalle de Factura #@FacturaDetalle.Id
+                <i class="oi oi-document" style="font-size: 1.5rem; color: var(--fp-secondary);"></i>
+            </h1>
+             <hr>
 
-            <hr style="border-color: #ffb6c1;" />
+            <hr style="border-top: 2px solid var(--fp-primary-border);" class="mb-6" />
 
-            <div class="card shadow-lg" style="border: 1px solid #ff69b4; border-radius: 10px; overflow: hidden;">
-                <div class="card-header" style="background-color: #ff69b4; color: white;">
-                    <h5 class="mb-0">Cliente: **@FacturaDetalle.NombreCliente**</h5>
+            <div class="bg-white p-6 rounded-xl facturapro-card-shadow border" style="border-color: var(--fp-primary-border);">
+
+                <div class="p-3 rounded-lg mb-4" style="background-color: var(--fp-primary-soft); color: var(--fp-on-primary-soft);">
+                    <h5 class="text-xl font-bold mb-0">Cliente: **@FacturaDetalle.NombreCliente**</h5>
                 </div>
-                <div class="card-body" style="background-color: white;">
-                    <p style="color: #8b0000;"><strong>Fecha:</strong> @FacturaDetalle.FechaFactura.ToShortDateString()</p>
-                    <hr style="border-color: #ffb6c1;" />
 
-                    <h5 style="color: #ff69b4; font-weight: 700;">Artículos Incluidos:</h5>
-                    <table class="table table-hover table-striped" style="border: 1px solid #ffb6c1;">
-                        <thead style="background-color: #ffb6c1; color: #8b0000;">
-                            <tr>
-                                <th>Descripción</th>
-                                <th class="text-end">Cantidad</th>
-                                <th class="text-end">Precio Unitario</th>
-                                <th class="text-end">Subtotal</th>
+                <p class="text-lg mb-4" style="color: var(--fp-on-surface);">
+                    <strong>Fecha de Emisión:</strong> <span class="font-semibold" style="color: var(--fp-secondary);">@FacturaDetalle.FechaFactura.ToShortDateString()</span>
+                </p>
+
+                <h5 class="text-xl font-semibold mb-3" style="color: var(--fp-secondary);">Artículos Incluidos:</h5>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" style="border: 1px solid var(--fp-primary-border);">
+
+                        <thead style="background-color: var(--fp-primary-soft); color: var(--fp-on-primary-soft);">
+                            <tr class="text-sm uppercase font-semibold tracking-wider">
+                                <th class="p-3 border-b-2" style="border-bottom-color: var(--fp-secondary);">Descripción</th>
+                                <th class="p-3 border-b-2 text-end" style="border-bottom-color: var(--fp-secondary);">Cantidad</th>
+                                <th class="p-3 border-b-2 text-end" style="border-bottom-color: var(--fp-secondary);">Precio Unitario</th>
+                                <th class="p-3 border-b-2 text-end" style="border-bottom-color: var(--fp-secondary);">Subtotal</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach (var item in FacturaDetalle.Articulos)
                             {
-                                <tr style="cursor: default;">
-                                    <td>@item.Descripcion</td>
-                                    <td class="text-end">@item.Cantidad</td>
-                                    <td class="text-end">$@item.Precio.ToString("N2")</td>
-                                    <td class="text-end">$@item.Subtotal.ToString("N2")</td>
+                                <tr class="hover:bg-gray-50 transition duration-150" style="color: var(--fp-on-surface-variant);">
+                                    <td class="p-3 border-b" style="border-color: var(--fp-primary-border);">@item.Descripcion</td>
+                                    <td class="p-3 border-b text-end" style="border-color: var(--fp-primary-border);">@item.Cantidad</td>
+                                    <td class="p-3 border-b text-end" style="border-color: var(--fp-primary-border);">@item.Precio.ToString("C2")</td>
+                                    <td class="p-3 border-b text-end" style="border-color: var(--fp-primary-border);">@item.Subtotal.ToString("C2")</td>
                                 </tr>
                             }
                         </tbody>
+
                         <tfoot>
-                            <tr style="background-color: #8b0000; color: white; font-size: 1.2rem; font-weight: 700;">
-                                <th colspan="3">TOTAL DE FACTURA</th>
-                                <th class="text-end">$@FacturaDetalle.Total.ToString("N2")</th>
+                            <tr style="background-color: var(--fp-primary); color: white;">
+                                <th class="p-3 text-lg" colspan="3">TOTAL DE FACTURA</th>
+                                <th class="p-3 text-end text-lg font-extrabold">@FacturaDetalle.Total.ToString("C2")</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -69,18 +76,30 @@
     </div>
 </div>
 
+<div class="fab-container">
+    
+    <button class="fp-efab" @onclick="VolverALista">
+        <i class="oi oi-list"></i> Volver a Facturas
+    </button>
+</div>
+
+
 @code {
     [Parameter]
     public int FacturaId { get; set; }
 
     private Factura? FacturaDetalle { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         FacturaDetalle = await ServicioControlador.ObtenerFacturaPorIdAsync(FacturaId);
     }
-
     private void VolverALista()
     {
         Navigation.NavigateTo("/Vista");
+    }
+    private void NavigateToHome()
+    {
+        Navigation.NavigateTo("/");
     }
 }
