@@ -4,39 +4,38 @@
 @using blazor.Components.Servicios
 @inject blazor.Components.Servicios.ServicioControlador ServicioControlador
 @inject NavigationManager Navigation
+<div class="facturapro-bg">
+    <div class="facturapro-card" style="max-width: 900px; padding: 30px; margin: 30px auto;">
 
-<div class="taylor-swift-bg">
-    <div class="taylor-swift-card" style="max-width: 900px; padding: 30px; margin: 30px auto;">
-
-        <h3 class="ts-title" style="font-size: 2.5rem; margin-bottom: 0;">
-            <span class="ts-pink">📝 Crear Nueva Factura </span>
+        <h3 class="fp-title" style="font-size: 2.5rem; margin-bottom: 0;">
+            <span class="fp-primary-color">📝 Crear Nueva Factura</span>
         </h3>
 
-        <hr style="border-color: #ffb6c1;" />
+        <hr style="border-color: var(--fp-primary); opacity: 0.5;" />
 
         <EditForm EditContext="@EditContext" OnValidSubmit="GuardarFactura">
             <DataAnnotationsValidator />
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="nombreCliente" class="form-label" style="color: #8b0000; font-weight: 600;">Nombre del Cliente</label>
-                    <InputText id="nombreCliente" @bind-Value="FacturaNueva.NombreCliente" class="form-control" style="border-color: #ffb6c1;" />
-                    <ValidationMessage For="@(() => FacturaNueva.NombreCliente)" style="color: #e50000;" />
+                    <label for="nombreCliente" class="form-label" style="color: var(--fp-primary); font-weight: 600;">Nombre del Cliente</label>
+                    <InputText id="nombreCliente" @bind-Value="FacturaNueva.NombreCliente" class="form-control" style="border-color: var(--fp-primary-border);" />
+                    <ValidationMessage For="@(() => FacturaNueva.NombreCliente)" style="color: var(--fp-error);" />
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label for="fechaFactura" class="form-label" style="color: #8b0000; font-weight: 600;">Fecha de la Factura</label>
-                    <InputDate id="fechaFactura" @bind-Value="FacturaNueva.FechaFactura" class="form-control" style="border-color: #ffb6c1;" />
-                    <ValidationMessage For="@(() => FacturaNueva.FechaFactura)" style="color: #e50000;" />
+                    <label for="fechaFactura" class="form-label" style="color: var(--fp-primary); font-weight: 600;">Fecha de la Factura</label>
+                    <InputDate id="fechaFactura" @bind-Value="FacturaNueva.FechaFactura" class="form-control" style="border-color: var(--fp-primary-border);" />
+                    <ValidationMessage For="@(() => FacturaNueva.FechaFactura)" style="color: var(--fp-error);" />
                 </div>
             </div>
 
-            <h4 class="mt-4" style="color: #ff69b4; font-weight: 700;">Artículos</h4>
-            <hr style="border-color: #ffb6c1;" />
+            <h4 class="mt-4" style="color: var(--fp-secondary); font-weight: 700;">Artículos</h4>
+            <hr style="border-color: var(--fp-primary-border); opacity: 0.5;" />
 
             <div class="table-responsive">
-                <table class="table table-bordered" style="border-radius: 10px; overflow: hidden; border: 1px solid #ffb6c1;">
-                    <thead style="background-color: #ff69b4; color: white;">
+                <table class="table table-bordered table-facturapro" style="border-radius: 10px; overflow: hidden; border: 1px solid var(--fp-primary-border);">
+                    <thead style="background-color: var(--fp-secondary); color: white;">
                         <tr>
                             <th>Descripción</th>
                             <th style="width: 100px;" class="text-end">Cantidad</th>
@@ -48,28 +47,27 @@
                     <tbody>
                         @foreach (var articulo in FacturaNueva.Articulos)
                         {
-                            <tr style="background-color: @(FacturaNueva.Articulos.IndexOf(articulo) % 2 == 0 ? "white" : "#fce4ec");">
+                            <tr style="background-color: @(FacturaNueva.Articulos.IndexOf(articulo) % 2 == 0 ? "white" : "var(--fp-surface-alt)");">
                                 <td>
                                     <InputText @bind-Value="articulo.Descripcion"
                                                @oninput="@(() => EditContext.Validate())"
                                                class="form-control"
-                                               style="border-color: #ffb6c1; padding: 0.25rem 0.5rem;" />
-                                    <ValidationMessage For="@(() => articulo.Descripcion)" style="color: #e50000;" />
+                                               style="border-color: var(--fp-primary-border); padding: 0.25rem 0.5rem;" />
+                                    <ValidationMessage For="@(() => articulo.Descripcion)" style="color: var(--fp-error);" />
                                 </td>
                                 <td>
-                                    <InputNumber @bind-Value="articulo.Cantidad" class="form-control text-end" style="border-color: #ffb6c1; padding: 0.25rem 0.5rem;" />
-                                    <ValidationMessage For="@(() => articulo.Cantidad)" style="color: #e50000;" />
+                                    <InputNumber @bind-Value="articulo.Cantidad" class="form-control text-end" style="border-color: var(--fp-primary-border); padding: 0.25rem 0.5rem;" />
+                                    <ValidationMessage For="@(() => articulo.Cantidad)" style="color: var(--fp-error);" />
                                 </td>
                                 <td>
-                                    <InputNumber @bind-Value="articulo.Precio" step="0.01" class="form-control text-end" style="border-color: #ffb6c1; padding: 0.25rem 0.5rem;" />
-                                    <ValidationMessage For="@(() => articulo.Precio)" style="color: #e50000;" />
+                                    <InputNumber @bind-Value="articulo.Precio" step="0.01" class="form-control text-end" style="border-color: var(--fp-primary-border); padding: 0.25rem 0.5rem;" />
+                                    <ValidationMessage For="@(() => articulo.Precio)" style="color: var(--fp-error);" />
                                 </td>
-                                <td class="text-end" style="color: #ff69b4; font-weight: 700;">
+                                <td class="text-end" style="color: var(--fp-secondary); font-weight: 700;">
                                     $@articulo.Subtotal.ToString("N2")
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-sm" @onclick="() => RemoverArticulo(articulo)"
-                                            style="background-color: #ffb6c1; border-color: #ff69b4; color: #8b0000;">
+                                    <button type="button" class="btn btn-sm fp-action-delete" @onclick="() => RemoverArticulo(articulo)">
                                         🗑️
                                     </button>
                                 </td>
@@ -79,12 +77,12 @@
                     <tfoot>
                         <tr>
                             <td colspan="5" style="background-color: white;">
-                                <button type="button" class="ts-button" @onclick="AgregarArticulo" style="font-size: 1rem; padding: 10px 20px; background-color: #b5e7a9; color: #38761d; border-color: #70ad47;">
+                                <button type="button" class="fp-button-elevated" @onclick="AgregarArticulo" style="font-size: 1rem; padding: 10px 20px; background-color: var(--fp-tertiary); color: white; border-color: var(--fp-tertiary);">
                                     ➕ Agregar Artículo
                                 </button>
                             </td>
                         </tr>
-                        <tr style="background-color: #ff69b4; color: white; font-size: 1.1rem; font-weight: 700;">
+                        <tr style="background-color: var(--fp-secondary); color: white; font-size: 1.1rem; font-weight: 700;">
                             <th class="text-end" colspan="3">Total Estimado:</th>
                             <th class="text-end" colspan="2">$@FacturaNueva.Total.ToString("N2")</th>
                         </tr>
@@ -92,19 +90,18 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-between mt-4">
-                <button type="button" class="btn btn-secondary" @onclick="Volver"
-                        style="background-color: #fce4ec; color: #8b0000; border-color: #ffb6c1;">
-                    Cancelar
-                </button>
-
-                <button type="submit" class="ts-button" style="font-size: 1rem; padding: 10px 20px;">
-                    💾 Guardar Factura
-                </button>
-            </div>
-
         </EditForm>
     </div>
+</div>
+
+<div class="fab-container">
+
+        <button class="fp-fab-secondary" @onclick="GuardarFactura">
+        <i class="oi oi-check"></i> 💾 
+    </button>
+    <button class="fp-efab" type="submit" form="EditForm" @onclick="Volver">
+        Cancelar
+    </button>
 </div>
 
 @code {
@@ -119,6 +116,10 @@
 
     protected override void OnInitialized()
     {
+        if (!FacturaNueva.Articulos.Any())
+        {
+            FacturaNueva.Articulos.Add(new Factura.ArticuloFactura());
+        }
         EditContext = new EditContext(FacturaNueva);
     }
 
@@ -132,15 +133,24 @@
     private void RemoverArticulo(Factura.ArticuloFactura articulo)
     {
         FacturaNueva.Articulos.Remove(articulo);
+
+        if (!FacturaNueva.Articulos.Any())
+        {
+            FacturaNueva.Articulos.Add(new Factura.ArticuloFactura());
+        }
+
         StateHasChanged();
         EditContext.Validate();
     }
 
     private async Task GuardarFactura()
     {
-        await ServicioControlador.GuardarNuevaFacturaAsync(FacturaNueva);
-        await ServicioControlador.CargarFacturasAsync();
-        Navigation.NavigateTo("/Vista");
+        if (EditContext.Validate())
+        {
+            await ServicioControlador.GuardarNuevaFacturaAsync(FacturaNueva);
+            await ServicioControlador.CargarFacturasAsync();
+            Navigation.NavigateTo("/Vista");
+        }
     }
 
     private void Volver()
