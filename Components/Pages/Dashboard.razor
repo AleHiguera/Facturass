@@ -1,14 +1,10 @@
 ﻿@page "/dashboard"
+@rendermode InteractiveServer 
 @using blazor.Components.Data
 @using blazor.Components.Servicios
 @using System.Globalization
 @inject ServicioDashboard DashboardService
-@inject NavigationManager Navigation
-
-@using blazor.Components.Data
-@using blazor.Components.Servicios
-@using System.Globalization
-@inject ServicioDashboard DashboardService
+@inject NavigationManager Navigation 
 @inject NavigationManager NavManager
 
 <PageTitle>Dashboard de Ventas 📊</PageTitle>
@@ -175,9 +171,6 @@
 </div>
 
 <div class="fab-container">
-    <button class="fp-fab-secondary" @onclick="NavigateToHome">
-        🏠
-    </button>
     <button class="fp-efab" @onclick="VolverAVista">
         <i class="oi oi-list"></i> Ir a Facturas
     </button>
@@ -273,11 +266,6 @@
         {
             isLoading = false;
         }
-    }
-
-    private void NavigateToHome()
-    {
-        NavManager.NavigateTo("/");
     }
     
     private void VolverAVista()
