@@ -50,7 +50,7 @@ namespace blazor.Components.Servicios
 
         public IEnumerable<Factura> ObtenerFacturasFiltradas()
         {
-            IEnumerable<Factura> resultado = _facturasEnMemoria;
+            IEnumerable<Factura> resultado = _facturasEnMemoria.Where(f => !f.Archivada);
 
             if (!string.IsNullOrWhiteSpace(FiltroNombreCliente))
             {
@@ -72,6 +72,35 @@ namespace blazor.Components.Servicios
             }).FireAndForget();
 
             return resultado;
+        }
+
+        public async Task ArchivarFacturaAsync(int facturaId)
+        {
+            var factura = _facturasEnMemoria.FirstOrDefault(f => f.Id == facturaId);
+            if (factura != null)
+            {
+                factura.Archivada = true;
+                await _servicioFacturas.ActualizarEstadoArchivadoAsync(facturaId, true);
+            }
+        }
+
+        public async Task DesarchivarFacturaAsync(int facturaId)
+        {
+            var factura = _facturasEnMemoria.FirstOrDefault(f => f.Id == facturaId);
+            if (factura != null)
+            {
+                factura.Archivada = false;
+                await _servicioFacturas.ActualizarEstadoArchivadoAsync(facturaId, false);
+            }
+        }
+
+        public async Task<IEnumerable<Factura>> ObtenerFacturasArchivadasAsync()
+        {
+            if (!_facturasEnMemoria.Any())
+            {
+                await CargarFacturasAsync();
+            }
+            return _facturasEnMemoria.Where(f => f.Archivada);
         }
 
         public async Task GuardarNuevaFacturaAsync(Factura nuevaFactura)
@@ -126,6 +155,7 @@ namespace blazor.Components.Servicios
             }
             return _facturasEnMemoria;
         }
+
         public async Task<IEnumerable<ReporteMensual>> ObtenerReporteAnualAsync(int anio)
         {
             return await _servicioFacturas.ObtenerReporteAnualAsync(anio);

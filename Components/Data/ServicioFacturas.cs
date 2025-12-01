@@ -53,15 +53,17 @@ namespace blazor.Components.Servicios
             await conexion.OpenAsync();
 
             var comando = conexion.CreateCommand();
+            string selectFields = "Id, FechaFactura, NombreCliente, Archivada";
+            string orderByClause = " ORDER BY Id DESC";
 
             if (anio.HasValue)
             {
-                comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas WHERE FechaFactura LIKE @anio || '-%' ORDER BY Id DESC";
+                comando.CommandText = $"SELECT {selectFields} FROM Facturas WHERE FechaFactura LIKE @anio || '-%'{orderByClause}";
                 comando.Parameters.AddWithValue("@anio", anio.Value.ToString());
             }
             else
             {
-                comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas ORDER BY Id DESC";
+                comando.CommandText = $"SELECT {selectFields} FROM Facturas{orderByClause}";
             }
 
             using var reader = await comando.ExecuteReaderAsync();
@@ -72,6 +74,7 @@ namespace blazor.Components.Servicios
                     Id = reader.GetInt32(0),
                     FechaFactura = DateTime.Parse(reader.GetString(1)),
                     NombreCliente = reader.GetString(2),
+                    Archivada = reader.GetBoolean(3),
                     Articulos = new List<Factura.ArticuloFactura>()
                 };
 
@@ -98,7 +101,7 @@ namespace blazor.Components.Servicios
             await conexion.OpenAsync();
 
             var comando = conexion.CreateCommand();
-            comando.CommandText = "SELECT Id, FechaFactura, NombreCliente FROM Facturas WHERE Id = @id";
+            comando.CommandText = "SELECT Id, FechaFactura, NombreCliente, Archivada FROM Facturas WHERE Id = @id";
             comando.Parameters.AddWithValue("@id", id);
 
             using (var reader = await comando.ExecuteReaderAsync())
@@ -110,6 +113,7 @@ namespace blazor.Components.Servicios
                         Id = reader.GetInt32(0),
                         FechaFactura = DateTime.Parse(reader.GetString(1)),
                         NombreCliente = reader.GetString(2),
+                        Archivada = reader.GetBoolean(3),
                         Articulos = new List<Factura.ArticuloFactura>()
                     };
                 }
@@ -160,12 +164,13 @@ namespace blazor.Components.Servicios
                 var comandoFactura = conexion.CreateCommand();
                 comandoFactura.Transaction = transaccion;
                 comandoFactura.CommandText = @"
-                    INSERT INTO Facturas (FechaFactura, NombreCliente) 
-                    VALUES (@fecha, @cliente);
+                    INSERT INTO Facturas (FechaFactura, NombreCliente, Archivada) 
+                    VALUES (@fecha, @cliente, @archivada);
                     SELECT last_insert_rowid();";
 
                 comandoFactura.Parameters.AddWithValue("@fecha", nuevaFactura.FechaFactura.ToString("yyyy-MM-dd HH:mm:ss"));
                 comandoFactura.Parameters.AddWithValue("@cliente", nuevaFactura.NombreCliente);
+                comandoFactura.Parameters.AddWithValue("@archivada", nuevaFactura.Archivada ? 1 : 0);
 
                 long facturaId = (long)(await comandoFactura.ExecuteScalarAsync())!;
                 nuevaFactura.Id = (int)facturaId;
@@ -209,12 +214,14 @@ namespace blazor.Components.Servicios
                 comandoFactura.Transaction = transaccion;
                 comandoFactura.CommandText = @"
                     UPDATE Facturas 
-                    SET FechaFactura = @fecha, NombreCliente = @cliente 
+                    SET FechaFactura = @fecha, NombreCliente = @cliente, Archivada = @archivada
                     WHERE Id = @id";
 
                 comandoFactura.Parameters.AddWithValue("@id", facturaEditada.Id);
                 comandoFactura.Parameters.AddWithValue("@fecha", facturaEditada.FechaFactura.ToString("yyyy-MM-dd HH:mm:ss"));
                 comandoFactura.Parameters.AddWithValue("@cliente", facturaEditada.NombreCliente);
+                // Incluir el estado de archivado
+                comandoFactura.Parameters.AddWithValue("@archivada", facturaEditada.Archivada ? 1 : 0);
 
                 await comandoFactura.ExecuteNonQueryAsync();
 
@@ -247,6 +254,18 @@ namespace blazor.Components.Servicios
                 throw;
             }
         }
+        public async Task ActualizarEstadoArchivadoAsync(int facturaId, bool estado)
+        {
+            using var conexion = GetConnection();
+            await conexion.OpenAsync();
+
+            var comando = conexion.CreateCommand();
+            comando.CommandText = "UPDATE Facturas SET Archivada = @estado WHERE Id = @id";
+            comando.Parameters.AddWithValue("@id", facturaId);
+            comando.Parameters.AddWithValue("@estado", estado ? 1 : 0); 
+
+            await comando.ExecuteNonQueryAsync();
+        }
 
         public async Task EliminarFacturaAsync(int facturaId)
         {
@@ -276,6 +295,7 @@ namespace blazor.Components.Servicios
                 throw;
             }
         }
+
         public async Task<IEnumerable<ReporteMensual>> ObtenerReporteAnualAsync(int anio)
         {
             var facturasDelAnio = (await ObtenerFacturasPorAnioAsync(anio)).ToList();
