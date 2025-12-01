@@ -6,6 +6,8 @@
 @inject NavigationManager Navigation
 @inject Microsoft.JSInterop.IJSRuntime JSRuntime
 
+<PageTitle>Facturas Registradas</PageTitle>
+
 <div class="facturapro-bg">
     <div class="facturapro-card">
 
@@ -62,7 +64,7 @@
                         <th>Cliente</th>
                         <th class="text-end">Artículos</th>
                         <th class="text-end">Total</th>
-                        <th style="width: 100px;">Acciones</th>
+                        <th style="width: 150px;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,6 +81,12 @@
                                 <button class="btn btn-sm fp-action-edit" @onclick="() => EditarFactura(factura.Id)">
                                     ✏️
                                 </button>
+
+                                @* --- BOTÓN ARCHIVAR NUEVO --- *@
+                                <button class="btn btn-sm fp-action-secondary" @onclick="() => ArchivarFactura(factura.Id)" style="color: var(--fp-secondary); background-color: var(--fp-surface-alt);">
+                                    📦
+                                </button>
+
                                 <button class="btn btn-sm fp-action-delete" @onclick="() => ConfirmarEliminar(factura.Id)">
                                     🗑️
                                 </button>
@@ -98,6 +106,10 @@
 </div>
 
 <div class="fab-container">
+
+    <button class="fp-fab-secondary" @onclick="IrAFacturasArchivadas">
+        📦
+    </button>
 
     <button class="fp-fab-secondary" @onclick="IrADashboard">
         📋
@@ -198,6 +210,30 @@
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al eliminar la factura: {ex.Message}");
+            }
+        }
+    }
+
+    private void IrAFacturasArchivadas()
+    {
+        Navigation.NavigateTo("/archivadas");
+    }
+
+    private async Task ArchivarFactura(int facturaId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"¿Está seguro de archivar la Factura # {facturaId}? No aparecerá en listados ni reportes.");
+
+        if (confirmed)
+        {
+            try
+            {
+                await ServicioControlador.ArchivarFacturaAsync(facturaId);
+                await ServicioControlador.CargarFacturasAsync();
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al archivar la factura: {ex.Message}");
             }
         }
     }
